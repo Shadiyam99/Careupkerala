@@ -1,19 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from .services import create_companion,get_all_bookings
-from .schemas import 
+from app.companions import services as companion_services
+from app.companions import schemas as companion_schemas
 from middleware.db import get_db
 from typing import List
 
-router = APIRouter(prefix = "/companion",tags = ["Companion"])
+router = APIRouter(prefix="/companion", tags=["Companion"])
 
-@router.post("/create",response_model = BookingRead)
-def create_booking(
-    booking_data: BookingCreate,
-    db:Session = Depends(get_db),
+
+@router.post("/create", response_model=companion_schemas.CompanionRead)
+def create_companion(
+    companion_data: companion_schemas.CompanionCreate,
+    db: Session = Depends(get_db),
 ):
-return create_booking(db,booking_data)
+    return companion_services.create_companion_service(db, companion_data)
 
-@router.get("/list",response_model = List[BookingRead])
-def get_all_bookings(db:Session = Depends(get_db)):
-    return get_all_bookings(db)
+
+@router.get("/list", response_model=List[companion_schemas.CompanionRead])
+def get_all_companions(db: Session = Depends(get_db)):
+    return companion_services.get_all_companions_service(db)
