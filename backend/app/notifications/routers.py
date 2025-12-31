@@ -9,10 +9,10 @@ router = APIRouter(prefix = "/notification",tags = ["Notificatiion"])
 
 @router.post("/create",response_model = notification_schemas.NotificationRead)
 def create_notification(
-    notification_data: notification_schemas.NotitficationCreate,
+    notification_data: notification_schemas.NotificationCreate,
     db:Session = Depends(get_db)
 ): 
-    return notification_services.create_notification(db,notification_data)
+    return notification_services.create_notification_service(db,notification_data)
 
 @router.get("/list",response_model = List[notification_schemas.NotificationRead])
 def get_all_notitfication(db:Session = Depends(get_db)):

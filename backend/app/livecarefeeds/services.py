@@ -9,9 +9,7 @@ def create_livecarefeed_service(db:Session,livecarefeed_data:livecarefeed_schema
     livecarefeed = livecarefeed_model.Livecarefeed( 
         id = livecarefeed_data.id,
         booking_id = livecarefeed_data.booking_id,
-        message = livecarefeed_data.message,
-        photo_url = livecarefeed_data.photo_url,
-        timestamp = livecarefeed_data.timestamp,
+        
         
     )
     db.add(livecarefeed)

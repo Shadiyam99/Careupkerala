@@ -3,18 +3,20 @@ from uuid import UUID
 from datetime import datetime
 
 class ComplaintCreate(BaseModel):
+    id: UUID
+    booking_id: UUID
+    admin_id: UUID
     nri_id: UUID
-    companion_id: UUID
-    hospital_id: UUID
-    service_id: UUID
-    appointment: datetime
+    
 
 class ComplaintRead(BaseModel):
     id: UUID
     nri_id: UUID
-    companion_id: UUID
-    hospital_id: UUID
-    service_id: UUID
-    appointment: datetime
+    booking_id: UUID
+    admin_id: UUID
+    issue: str
+    status: str
+    note: str
     status: str 
+    updated_at: datetime
     created_at: datetime

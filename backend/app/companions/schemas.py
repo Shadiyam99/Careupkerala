@@ -16,7 +16,7 @@ class CompanionRead(BaseModel):
     email: str  
     password: str
     phone: str
-    background_verification: 
+    background_verification: str
     id_proof_url: str
     skils: str
     latitude: str

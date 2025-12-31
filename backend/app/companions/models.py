@@ -13,7 +13,9 @@ class Companion(Base):
     password = Column(String(150),nullable = False)
     phone = Column(String(20),nullable = False)
     background_verification = Column(Boolean,default = False)
-    id_proof_url = Column(String(50), nullable = False)
-    
-    
+    id_proof_url = Column(String(50),nullable = False)
+    skills = Column(Text,nullable=False)
+    latitude = Column(String(50),nullable=False)
+    longitude = Column(String(50),nullable=False)
+    status = Column(Boolean,nullable=False)
     created_at = Column(DateTime, nullable = False)

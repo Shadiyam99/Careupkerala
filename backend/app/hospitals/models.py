@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import Column,DateTime,String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID
 
 from middleware.db import Base
 

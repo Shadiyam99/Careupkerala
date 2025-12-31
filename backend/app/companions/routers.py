@@ -16,4 +16,4 @@ def create_companion(
 
 @router.get("/list",response_model = List[companion_schemas.CompanionRead])
 def get_all_companion(db:Session = Depends(get_db)):
-    return companion_services.get_all_companion(db)
+    return companion_services.get_all_companion_service(db)

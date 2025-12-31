@@ -6,7 +6,7 @@ from app.complaints import models as complaint_model
 from app.complaints import schemas as complaint_schemas
 
 def create_complaint_service(db:Session,complaint_data:complaint_schemas.ComplaintCreate):
-    complaint = complaint_data.complaint( 
+    complaint = complaint_data.Complaint( 
         id = complaint_data.id,
         nri_id = complaint_data.nri_id,
         booking_id = complaint_data.booking_id,
