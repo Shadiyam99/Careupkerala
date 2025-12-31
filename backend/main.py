@@ -8,6 +8,7 @@ from apps.companions.routers import router as companions_router
 from apps.hospitals.routers import router as hospitals_router
 from apps.services.routers import router as services_router
 from apps.bookings.routers import router as bookings_router
+from apps.payments.routers import router as payments_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +26,7 @@ app.include_router(companions_router)
 app.include_router(hospitals_router)
 app.include_router(services_router)
 app.include_router(bookings_router)
+app.include_router(payments_router)
 
 @app.get("/")
 def read_root():
