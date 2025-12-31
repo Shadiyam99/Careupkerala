@@ -5,6 +5,7 @@ from middleware.db import init_db
 from auth.routers import router as auth_router
 from apps.users.routers import router as users_router
 from apps.companions.routers import router as companions_router
+from apps.hospitals.routers import router as hospitals_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +20,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(companions_router)
+app.include_router(hospitals_router)
 
 @app.get("/")
 def read_root():
