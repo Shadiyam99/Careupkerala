@@ -6,3 +6,4 @@ from apps.payments.models import *
 from apps.care_feed.models import *
 from apps.notifications.models import *
 from apps.complaints.models import *
+from apps.feedback.models import *
