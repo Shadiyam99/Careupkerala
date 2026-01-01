@@ -13,6 +13,7 @@ from apps.care_feed.routers import router as care_feed_router
 from apps.notifications.routers import router as notifications_router
 from apps.complaints.routers import router as complaints_router
 from apps.feedback.routers import router as feedback_router
+from apps.dashboard.routers import router as dashboard_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +36,7 @@ app.include_router(care_feed_router)
 app.include_router(notifications_router)
 app.include_router(complaints_router)
 app.include_router(feedback_router)
+app.include_router(dashboard_router)
 
 @app.get("/")
 def read_root():
