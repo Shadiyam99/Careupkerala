@@ -37,6 +37,7 @@ class Companion(Base):
     password_hash = Column(String, nullable=False)
     phone = Column(String, nullable=False)
     status = Column(Boolean, default=False, nullable=False)
+    availability_status = Column(String, nullable=False, default="available")
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

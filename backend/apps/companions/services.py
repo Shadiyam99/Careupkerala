@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 from apps.companions.models import Companion
-from apps.companions.schemas import CompanionResponse
+from apps.companions.schemas import CompanionResponse, CompanionAvailabilityUpdate
 
 
 def get_pending_companions(db: Session, current_user: dict) -> list[CompanionResponse]:
@@ -92,3 +92,33 @@ def get_my_companion_profile(db: Session, current_user: dict) -> CompanionRespon
         status=companion.status,
         created_at=companion.created_at
     )
+
+
+def update_my_availability(db: Session, current_user: dict, data: CompanionAvailabilityUpdate):
+    role = current_user.get("role")
+    user_id = UUID(current_user.get("user_id"))
+    
+    if role != "companion":
+        raise ValueError("Only companions can update their availability")
+    
+    companion = db.query(Companion).filter(Companion.id == user_id).first()
+    
+    if not companion:
+        raise ValueError("Companion not found")
+    
+    companion.availability_status = data.availability_status
+    db.commit()
+    db.refresh(companion)
+    
+    return companion
+
+
+def get_companions_availability(db: Session, current_user: dict):
+    role = current_user.get("role")
+    
+    if role != "admin":
+        raise ValueError("Only Admin users can view companions availability")
+    
+    companions = db.query(Companion).all()
+    
+    return companions

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Literal
 from uuid import UUID
 from datetime import datetime
 
@@ -19,3 +19,17 @@ class CompanionApprovalRequest(BaseModel):
 
 class CompanionListResponse(BaseModel):
     companions: List[CompanionResponse]
+
+
+class CompanionAvailabilityUpdate(BaseModel):
+    availability_status: Literal["available", "unavailable"]
+
+
+class CompanionAvailabilityResponse(BaseModel):
+    id: UUID
+    full_name: str
+    availability_status: str
+    status: bool
+
+    class Config:
+        from_attributes = True
