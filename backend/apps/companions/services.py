@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from apps.companions.models import Companion
 from apps.companions.schemas import CompanionResponse, CompanionAvailabilityUpdate
+from apps.admin_logs.services import log_admin_action
 
 
 def get_pending_companions(db: Session, current_user: dict) -> list[CompanionResponse]:
@@ -38,6 +39,15 @@ def approve_companion(db: Session, companion_id: str, current_user: dict) -> Com
     db.commit()
     db.refresh(companion)
     
+    log_admin_action(
+        db=db,
+        current_user=current_user,
+        action_type="approve",
+        entity_type="companion",
+        entity_id=companion.id,
+        description=f"Approved companion: {companion.full_name}"
+    )
+    
     return CompanionResponse(
         id=companion.id,
         full_name=companion.full_name,
@@ -62,6 +72,15 @@ def deactivate_companion(db: Session, companion_id: str, current_user: dict) -> 
     companion.status = False
     db.commit()
     db.refresh(companion)
+    
+    log_admin_action(
+        db=db,
+        current_user=current_user,
+        action_type="deactivate",
+        entity_type="companion",
+        entity_id=companion.id,
+        description=f"Deactivated companion: {companion.full_name}"
+    )
     
     return CompanionResponse(
         id=companion.id,

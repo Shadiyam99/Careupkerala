@@ -5,6 +5,7 @@ from apps.bookings.schemas import BookingCreate, BookingResponse, BookingStatusU
 from auth.models import NRIUser, Companion
 from apps.hospitals.models import Hospital
 from apps.services.models import Service, ServicePricing
+from apps.admin_logs.services import log_admin_action
 
 
 def create_booking(db: Session, data: BookingCreate, current_user: dict) -> BookingResponse:
@@ -121,6 +122,15 @@ def update_booking_status(db: Session, booking_id: str, data: BookingStatusUpdat
     booking.status = data.status
     db.commit()
     db.refresh(booking)
+    
+    log_admin_action(
+        db=db,
+        current_user=current_user,
+        action_type="update_status",
+        entity_type="booking",
+        entity_id=booking.id,
+        description=f"Updated booking status to: {booking.status}"
+    )
     
     return BookingResponse(
         id=booking.id,

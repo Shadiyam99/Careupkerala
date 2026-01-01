@@ -4,6 +4,7 @@ from apps.payments.models import Payment
 from apps.payments.schemas import PaymentCreate, PaymentResponse, PaymentStatusUpdate
 from apps.bookings.models import Booking
 from apps.services.models import ServicePricing
+from apps.admin_logs.services import log_admin_action
 
 
 def create_payment(db: Session, data: PaymentCreate, current_user: dict) -> PaymentResponse:
@@ -116,6 +117,15 @@ def update_payment_status(db: Session, payment_id: str, data: PaymentStatusUpdat
     payment.status = data.status
     db.commit()
     db.refresh(payment)
+    
+    log_admin_action(
+        db=db,
+        current_user=current_user,
+        action_type="update_status",
+        entity_type="payment",
+        entity_id=payment.id,
+        description=f"Updated payment status to: {payment.status}"
+    )
     
     return PaymentResponse(
         id=payment.id,

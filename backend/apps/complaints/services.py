@@ -4,6 +4,7 @@ from apps.bookings.models import Booking
 from apps.complaints.schemas import ComplaintCreate, ComplaintAdminUpdate
 from uuid import UUID
 from datetime import datetime
+from apps.admin_logs.services import log_admin_action
 
 
 def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
@@ -80,5 +81,14 @@ def update_complaint(db: Session, complaint_id: UUID, data: ComplaintAdminUpdate
     
     db.commit()
     db.refresh(complaint)
+    
+    log_admin_action(
+        db=db,
+        current_user=current_user,
+        action_type="update_status",
+        entity_type="complaint",
+        entity_id=complaint.id,
+        description=f"Updated complaint status to: {complaint.status}"
+    )
     
     return complaint
