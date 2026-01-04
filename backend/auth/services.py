@@ -12,7 +12,7 @@ def authenticate_user(db: Session, email: str, password: str) -> tuple[str, str,
     user, role = get_user_by_email(db, email)
 
     if user is None:
-    raise ValueError("Invalid email or password")
+         raise ValueError("Invalid email or password")
     
     if not verify_password(password, user.password_hash):
         raise ValueError("Invalid email or password")
@@ -66,7 +66,9 @@ def refresh_access_token(db: Session, refresh_token: str) -> str:
 
 def register_nri(db: Session, full_name: str, email: str, password: str, phone: str, country: str) -> str:
     """Register new NRI user and return user_id"""
-    if get_user_by_email(db, email):
+    user_data,user_role =  get_user_by_email(db, email)
+    if user_data:
+        print(f"existing user {user_data} {user_role}")
         raise ValueError("Email already registered")
     
     user = NRIUser(
@@ -84,7 +86,9 @@ def register_nri(db: Session, full_name: str, email: str, password: str, phone: 
 
 def register_companion(db: Session, full_name: str, email: str, password: str, phone: str) -> str:
     """Register new companion and return user_id"""
-    if get_user_by_email(db, email):
+    user_data,user_role =  get_user_by_email(db, email)
+    if user_data:
+        print(f"existing user {user_data} {user_role}")
         raise ValueError("Email already registered")
     
     user = Companion(
