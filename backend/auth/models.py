@@ -1,52 +1,54 @@
-import uuid
+
 from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-
+import uuid
+from datetime import datetime
 from middleware.db import Base
 
 
 class Admin(Base):
-    __tablename__ = "tbl_admin"
-
+    __tablename__ = "admins"
+    
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    full_name = Column(String(100), nullable=False)
-    email = Column(String(150), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    phone = Column(String(20))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class NRIUser(Base):
-    __tablename__ = "tbl_nri"
-
+    __tablename__ = "nri_users"
+    
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    full_name = Column(String(100), nullable=False)
-    email = Column(String(150), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    phone = Column(String(20))
-    country = Column(String(100), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    country = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Companion(Base):
-    __tablename__ = "tbl_companion"
-
+    __tablename__ = "companions"
+    
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    full_name = Column(String(100), nullable=False)
-    email = Column(String(150), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    phone = Column(String(20))
-    status = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    status = Column(Boolean, default=False, nullable=False)
+    availability_status = Column(String, nullable=False, default="available")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
-
+    
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
-    role = Column(String(20), nullable=False)
-    token = Column(String(255), unique=True, nullable=False)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    role = Column(String, nullable=False)
+    token = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

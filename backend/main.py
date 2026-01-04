@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import uvicorn
 from middleware.db import init_db
-from app.booking.routes import router as booking_router
+from auth.routers import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(booking_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def read_root():

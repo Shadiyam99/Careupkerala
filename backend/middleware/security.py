@@ -1,53 +1,43 @@
 import hashlib
 import bcrypt
 from datetime import datetime, timedelta
-from jose import JWTError,jwt
-
-from middleware.config import (
-   SECRET_KEY,
-   ALGORITHM ,
-   ACCESS_TOKEN_EXPIRE_MINUTES,
-   REFRESH_TOKEN_EXPIRE_DAYS 
-   
-)
+from jose import jwt, JWTError
+from middleware.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 
 
-def _pre_hash(password : str) -> bytes:
-    return hashlib.sha256(password.encode("utf-8")).digest()
+def hash_password(password: str) -> str:
+    """Hash password using SHA256 pre-hash + bcrypt"""
+    sha256_hash = hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(sha256_hash.encode(), bcrypt.gensalt()).decode()
 
-def hash_password(password : str) -> str:
-    pre_hashed = _pre_hash(password)
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(pre_hashed,salt).decode("utf-8")
 
-def verify_password(password:str,hashed:str) ->bool:
-    pre_hashed = _pre_hash(password)
-    return bcrypt.checkpw(pre_hashed,hashed.encode("utf-8"))  
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify password against hash"""
+    sha256_hash = hashlib.sha256(plain_password.encode()).hexdigest()
+    return bcrypt.checkpw(sha256_hash.encode(), hashed_password.encode())
 
-def create_access_token(data: dict) -> str:
-    payload = {
-        **data,
-        "exp": datetime.utcnow()
-        + timedelta(minutes =ACCESS_TOKEN_EXPIRE_MINUTES),
-        "type":"access",
-    }
-    return jwt.encode(payload,SECRET_KEY,algorithm = ALGORITHM)
 
-def create_refresh_token() -> str:
-    payload = {
-     "exp": datetime.utcnow()
-      + timedelta(days = REFRESH_TOKEN_EXPIRE_DAYS),
-      "type":"refresh",   
-    }
-    return jwt.encode(payload,SECRET_KEY,algorithm = ALGORITHM)
+def create_access_token(user_id: str, role: str) -> str:
+    """Create short-lived access token"""
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {"user_id": user_id, "role": role, "exp": expire, "type": "access"}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-def verify_access_token(token: str) -> dict | None:
+
+def create_refresh_token(user_id: str, role: str) -> tuple[str, datetime]:
+    """Create long-lived refresh token and return token + expiry"""
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    payload = {"user_id": user_id, "role": role, "exp": expire, "type": "refresh"}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token, expire
+
+
+def verify_access_token(token: str) -> dict:
+    """Verify access token and return payload, reject refresh tokens"""
     try:
-        payload = jwt.decode(token,SECRET_KEY,algorithms = [ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "access":
-            return None
+            raise ValueError("Invalid token type")
         return payload
     except JWTError:
-        return None
-
-    
+        raise ValueError("Invalid token")
