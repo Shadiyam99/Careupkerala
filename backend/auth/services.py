@@ -9,11 +9,10 @@ from middleware.auth_utils import get_user_by_email
 
 def authenticate_user(db: Session, email: str, password: str) -> tuple[str, str, str]:
     """Authenticate user and return (user_id, role, access_token, refresh_token)"""
-    result = get_user_by_email(db, email)
-    if not result:
-        raise ValueError("Invalid email or password")
-    
-    user, role = result
+    user, role = get_user_by_email(db, email)
+
+    if user is None:
+    raise ValueError("Invalid email or password")
     
     if not verify_password(password, user.password_hash):
         raise ValueError("Invalid email or password")
