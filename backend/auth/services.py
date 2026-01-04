@@ -7,7 +7,7 @@ from middleware.config import SECRET_KEY, ALGORITHM
 from middleware.auth_utils import get_user_by_email
 
 
-def authenticate_user(db: Session, email: str, password: str) -> tuple[str, str, str]:
+def authenticate_user(db: Session, email: str, password: str) -> tuple[str, str, str,str]:
     """Authenticate user and return (user_id, role, access_token, refresh_token)"""
     user, role = get_user_by_email(db, email)
 
