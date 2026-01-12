@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../api/admin';
 import { companionsApi } from '../../api/companions';
+import { hospitalsApi } from '../../api/hospitals';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { cn } from '../../utils/cn';
@@ -14,10 +18,21 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [pendingCompanions, setPendingCompanions] = useState([]);
     const [logs, setLogs] = useState([]);
+    const [hospitals, setHospitals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const ITEMS_PER_PAGE = 10;
+
+    // Hospital Modal State
+    const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
+    const [currentHospital, setCurrentHospital] = useState(null);
+    const [hospitalForm, setHospitalForm] = useState({
+        name: '',
+        location: '',
+        address: '',
+        phone: ''
+    });
 
     useEffect(() => {
         setPage(1); // Reset page on tab change
@@ -44,6 +59,10 @@ const AdminDashboard = () => {
                 const data = await adminApi.getLogs(currentPage, ITEMS_PER_PAGE);
                 setLogs(data.logs || []);
                 setTotalPages(Math.ceil((data.total || 0) / ITEMS_PER_PAGE));
+            } else if (activeTab === 'hospitals') {
+                const data = await hospitalsApi.getAll();
+                setHospitals(data || []);
+                setTotalPages(1); // Hospitals not paginated yet
             }
         } catch (err) {
             console.error(err);
@@ -77,9 +96,64 @@ const AdminDashboard = () => {
         }
     };
 
+    // Hospital Handlers
+    const handleAddHospital = () => {
+        setCurrentHospital(null);
+        setHospitalForm({ name: '', location: '', address: '', phone: '' });
+        setIsHospitalModalOpen(true);
+    };
+
+    const handleEditHospital = (hospital) => {
+        setCurrentHospital(hospital);
+        setHospitalForm({
+            name: hospital.name,
+            location: hospital.location,
+            address: hospital.address,
+            phone: hospital.phone
+        });
+        setIsHospitalModalOpen(true);
+    };
+
+    // Confirmation Modal State
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(null);
+
+    const handleSaveHospital = async (e) => {
+        e.preventDefault();
+        try {
+            if (currentHospital) {
+                await hospitalsApi.update(currentHospital.id, hospitalForm);
+                success('Hospital updated successfully');
+            } else {
+                await hospitalsApi.create(hospitalForm);
+                success('Hospital created successfully');
+            }
+            setIsHospitalModalOpen(false);
+            loadData(page);
+        } catch (err) {
+            console.error(err);
+            toastError('Failed to save hospital');
+        }
+    };
+
+    const handleDeleteClick = (id) => {
+        setConfirmAction(() => async () => {
+            try {
+                await hospitalsApi.delete(id);
+                success('Hospital deleted successfully');
+                loadData(page);
+            } catch (err) {
+                console.error(err);
+                toastError('Failed to delete hospital');
+            }
+        });
+        setIsConfirmOpen(true);
+    };
+
     const tabs = [
         { id: 'overview', label: 'Overview' },
         { id: 'companions', label: 'Companions' },
+        { id: 'hospitals', label: 'Hospitals' },
         { id: 'logs', label: 'Activity Logs' },
     ];
 
@@ -115,7 +189,7 @@ const AdminDashboard = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                        <p className="text-gray-500 mt-1">Manage platform activity and companions.</p>
+                        <p className="text-gray-500 mt-1">Manage platform activity, companions, and hospitals.</p>
                     </div>
                     <Button variant="outline" onClick={logout} className="text-red-600 border-red-200 hover:bg-red-50">
                         Logout
@@ -123,13 +197,13 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex space-x-1 rounded-xl bg-gray-200 p-1 max-w-md">
+                <div className="flex space-x-1 rounded-xl bg-gray-200 p-1 max-w-xl overflow-x-auto">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200',
+                                'flex-1 rounded-lg py-2.5 text-sm font-medium leading-5 transition-all duration-200 whitespace-nowrap px-4',
                                 activeTab === tab.id
                                     ? 'bg-white text-primary shadow'
                                     : 'text-gray-600 hover:bg-white/12 hover:text-primary'
@@ -143,7 +217,7 @@ const AdminDashboard = () => {
                 {/* Error handled by toast */}
 
                 {/* Content */}
-                {loading ? (
+                {loading && !hospitals.length && !pendingCompanions.length && !logs.length && !stats ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
                     </div>
@@ -234,6 +308,61 @@ const AdminDashboard = () => {
                             </Card>
                         )}
 
+                        {/* Hospitals Tab */}
+                        {activeTab === 'hospitals' && (
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <h3 className="text-lg font-bold text-gray-900">Registered Hospitals</h3>
+                                    <Button onClick={handleAddHospital} size="sm">
+                                        + Add Hospital
+                                    </Button>
+                                </CardHeader>
+                                <CardContent>
+                                    {hospitals.length === 0 ? (
+                                        <p className="text-gray-500 py-4 text-center">No hospitals registered yet.</p>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                    {hospitals.map((hospital) => (
+                                                        <tr key={hospital.id}>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{hospital.name}</td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hospital.location}</td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hospital.phone}</td>
+                                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={hospital.address}>{hospital.address}</td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                <button
+                                                                    onClick={() => handleEditHospital(hospital)}
+                                                                    className="text-primary hover:text-accent font-semibold transition-colors"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(hospital.id)}
+                                                                    className="text-red-600 hover:text-red-800 font-semibold transition-colors ml-4"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Logs Tab */}
                         {activeTab === 'logs' && (
                             <Card>
@@ -284,7 +413,71 @@ const AdminDashboard = () => {
                     </div>
                 )}
             </div>
-        </div>
+
+            {/* Hospital Modal */}
+            <Modal
+                isOpen={isHospitalModalOpen}
+                onClose={() => setIsHospitalModalOpen(false)}
+                title={currentHospital ? 'Edit Hospital' : 'Add New Hospital'}
+            >
+                <form onSubmit={handleSaveHospital} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hospital Name</label>
+                        <Input
+                            required
+                            value={hospitalForm.name}
+                            onChange={(e) => setHospitalForm({ ...hospitalForm, name: e.target.value })}
+                            placeholder="e.g. City General Hospital"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        <Input
+                            required
+                            value={hospitalForm.location}
+                            onChange={(e) => setHospitalForm({ ...hospitalForm, location: e.target.value })}
+                            placeholder="e.g. Kochi, Kerala"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <Input
+                            required
+                            value={hospitalForm.phone}
+                            onChange={(e) => setHospitalForm({ ...hospitalForm, phone: e.target.value })}
+                            placeholder="e.g. +91 9876543210"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <textarea
+                            required
+                            value={hospitalForm.address}
+                            onChange={(e) => setHospitalForm({ ...hospitalForm, address: e.target.value })}
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2 bg-gray-50"
+                            rows={3}
+                            placeholder="Enter full address"
+                        />
+                    </div>
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit">
+                            {currentHospital ? 'Update Hospital' : 'Add Hospital'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmAction}
+                title="Delete Hospital"
+                message="Are you sure you want to delete this hospital? This action cannot be undone."
+                confirmText="Delete"
+                variant="danger"
+            />
+        </div >
     );
 };
 

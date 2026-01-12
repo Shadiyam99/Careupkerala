@@ -79,3 +79,19 @@ def list_hospitals(db: Session, current_user: dict) -> list[HospitalResponse]:
         )
         for h in hospitals
     ]
+
+
+def delete_hospital(db: Session, hospital_id: str, current_user: dict) -> bool:
+    """Delete hospital. Admin-only."""
+    if current_user["role"] != "admin":
+        raise ValueError("Only admins can delete hospitals")
+    
+    hospital_uuid = UUID(hospital_id)
+    hospital = db.query(Hospital).filter(Hospital.id == hospital_uuid).first()
+    
+    if not hospital:
+        raise ValueError("Hospital not found")
+    
+    db.delete(hospital)
+    db.commit()
+    return True
