@@ -26,7 +26,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             role=role
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        error_msg = str(e)
+        if "Companion account not approved" in error_msg:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=error_msg)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_msg)
 
 
 @router.post("/refresh")

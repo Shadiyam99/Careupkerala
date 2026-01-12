@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List, Literal, Optional
 from uuid import UUID
 from datetime import datetime
 
@@ -10,6 +10,7 @@ class CompanionResponse(BaseModel):
     email: str
     phone: str
     status: bool
+    availability_status: str
     created_at: datetime
 
 
@@ -19,10 +20,16 @@ class CompanionApprovalRequest(BaseModel):
 
 class CompanionListResponse(BaseModel):
     companions: List[CompanionResponse]
+    total: int
 
 
 class CompanionAvailabilityUpdate(BaseModel):
     availability_status: Literal["available", "unavailable"]
+
+
+class CompanionUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
 
 
 class CompanionAvailabilityResponse(BaseModel):

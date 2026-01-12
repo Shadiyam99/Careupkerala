@@ -14,3 +14,8 @@ class AdminActionLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminLogListResponse(BaseModel):
+    logs: list[AdminActionLogResponse]
+    total: int

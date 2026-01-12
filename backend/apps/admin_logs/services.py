@@ -32,12 +32,14 @@ def log_admin_action(
     return log_entry
 
 
-def get_admin_logs(db: Session, current_user: dict):
+def get_admin_logs(db: Session, current_user: dict, skip: int = 0, limit: int = 10):
     role = current_user.get("role")
     
     if role != "admin":
         raise ValueError("Only Admin users can view action logs")
     
-    logs = db.query(AdminActionLog).order_by(AdminActionLog.created_at.desc()).all()
+    query = db.query(AdminActionLog).order_by(AdminActionLog.created_at.desc())
+    total = query.count()
+    logs = query.offset(skip).limit(limit).all()
     
-    return logs
+    return logs, total

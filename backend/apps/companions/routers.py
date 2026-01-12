@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from middleware.db import get_db
 from middleware.auth_utils import get_current_user
-from apps.companions.schemas import CompanionResponse, CompanionListResponse, CompanionAvailabilityUpdate, CompanionAvailabilityResponse
+from apps.companions.schemas import CompanionResponse, CompanionListResponse, CompanionAvailabilityUpdate, CompanionAvailabilityResponse, CompanionUpdate
 from apps.companions.services import (
     get_pending_companions,
     approve_companion,
     deactivate_companion,
     get_my_companion_profile,
+    update_my_companion_profile,
     update_my_availability,
     get_companions_availability
 )
@@ -18,13 +19,17 @@ router = APIRouter(prefix="/companions", tags=["companions"])
 
 @router.get("/pending", response_model=CompanionListResponse)
 def list_pending_companions(
+    page: int = 1,
+    limit: int = 10,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     try:
-        companions = get_pending_companions(db, current_user)
-        return CompanionListResponse(companions=companions)
+        skip = (page - 1) * limit
+        companions, total = get_pending_companions(db, current_user, skip=skip, limit=limit)
+        return CompanionListResponse(companions=companions, total=total)
     except ValueError as e:
+        print(f"DEBUG ERROR in pending companions: {str(e)}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
@@ -69,7 +74,21 @@ def get_my_profile(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
-@router.put("/me/availability", response_model=CompanionAvailabilityResponse)
+@router.put("/me", response_model=CompanionResponse)
+def update_profile_route(
+    data: CompanionUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        return update_my_companion_profile(db, current_user, data)
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.put("/me/availability", response_model=CompanionResponse)
 def update_companion_availability(
     data: CompanionAvailabilityUpdate,
     current_user: dict = Depends(get_current_user),
