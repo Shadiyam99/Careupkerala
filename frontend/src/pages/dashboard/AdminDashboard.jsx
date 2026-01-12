@@ -4,6 +4,7 @@ import { companionsApi } from '../../api/companions';
 import { hospitalsApi } from '../../api/hospitals';
 import { servicesApi } from '../../api/services';
 import { bookingsApi } from '../../api/bookings';
+import { paymentsApi } from '../../api/payments';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -23,7 +24,8 @@ import {
     Menu,
     X,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Wallet
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -76,6 +78,9 @@ const AdminDashboard = () => {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedCompanionId, setSelectedCompanionId] = useState('');
 
+    // Payment State
+    const [payments, setPayments] = useState([]);
+
 
     useEffect(() => {
         setPage(1); // Reset page on tab change
@@ -114,6 +119,10 @@ const AdminDashboard = () => {
                 const data = await bookingsApi.getAll();
                 setBookings(data || []);
                 setTotalPages(1); // Bookings not paginated yet
+            } else if (activeTab === 'payments') {
+                const data = await paymentsApi.getAll();
+                setPayments(data || []);
+                setTotalPages(1);
             }
         } catch (err) {
             console.error(err);
@@ -335,12 +344,23 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleUpdatePaymentStatus = async (paymentId, newStatus) => {
+        try {
+            await paymentsApi.updateStatus(paymentId, newStatus);
+            success('Payment status updated');
+            loadData(page);
+        } catch (err) {
+            toastError('Failed to update payment status');
+        }
+    };
+
     const tabs = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
         { id: 'companions', label: 'Companions', icon: Users },
         { id: 'hospitals', label: 'Hospitals', icon: Building2 },
         { id: 'services', label: 'Services', icon: Stethoscope },
         { id: 'bookings', label: 'Bookings', icon: Calendar },
+        { id: 'payments', label: 'Payments', icon: Wallet },
         { id: 'logs', label: 'Activity Logs', icon: Activity },
     ];
 
@@ -468,7 +488,7 @@ const AdminDashboard = () => {
                         {/* Error handled by toast */}
 
                         {/* Content */}
-                        {loading && !hospitals.length && !pendingCompanions.length && !logs.length && !stats ? (
+                        {loading && !hospitals.length && !pendingCompanions.length && !logs.length && !stats && !bookings.length && !payments.length ? (
                             <div className="flex justify-center py-20">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
                             </div>
@@ -735,6 +755,81 @@ const AdminDashboard = () => {
                                                                                 Delete
                                                                             </Button>
                                                                         </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {/* Payments Tab */}
+                                {activeTab === 'payments' && (
+                                    <Card>
+                                        <CardHeader>
+                                            <h3 className="text-lg font-bold text-gray-900">Payment History</h3>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {payments.length === 0 ? (
+                                                <p className="text-gray-500 py-4 text-center">No transactions found.</p>
+                                            ) : (
+                                                <div className="overflow-x-auto">
+                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking ID</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                            {payments.map((payment) => (
+                                                                <tr key={payment.id}>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                        {new Date(payment.created_at).toLocaleDateString()}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap font-mono text-gray-500 text-xs">
+                                                                        {payment.booking_id}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                                        {payment.currency} {payment.amount}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                                                                        {payment.payment_method || 'N/A'}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                                        <span className={cn(
+                                                                            "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
+                                                                            payment.status === 'paid' ? "bg-green-100 text-green-800" :
+                                                                                payment.status === 'failed' ? "bg-red-100 text-red-800" :
+                                                                                    "bg-yellow-100 text-yellow-800"
+                                                                        )}>
+                                                                            {payment.status}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                        {payment.status === 'pending' && (
+                                                                            <div className="flex justify-end gap-2">
+                                                                                <button
+                                                                                    onClick={() => handleUpdatePaymentStatus(payment.id, 'paid')}
+                                                                                    className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-full transition-colors"
+                                                                                >
+                                                                                    Mark Paid
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleUpdatePaymentStatus(payment.id, 'failed')}
+                                                                                    className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-full transition-colors"
+                                                                                >
+                                                                                    Reject
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
                                                                     </td>
                                                                 </tr>
                                                             ))}
@@ -1019,8 +1114,8 @@ const AdminDashboard = () => {
                         </Modal>
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 };
 

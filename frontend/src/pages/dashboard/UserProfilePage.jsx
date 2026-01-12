@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { usersApi } from '../../api/users';
 import { bookingsApi } from '../../api/bookings';
 import { servicesApi } from '../../api/services';
+import { paymentsApi } from '../../api/payments';
 import { BookingModal } from '../../components/bookings/BookingModal';
+import { PaymentModal } from '../../components/payments/PaymentModal';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -19,9 +21,12 @@ const UserProfilePage = () => {
     // Tab State
     const [activeTab, setActiveTab] = useState('profile'); // profile, bookings, services
     const [myBookings, setMyBookings] = useState([]);
+    const [payments, setPayments] = useState([]);
     const [services, setServices] = useState([]);
     const [selectedService, setSelectedService] = useState(null);
+    const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -33,6 +38,7 @@ const UserProfilePage = () => {
         loadProfile();
         loadBookings();
         loadServices();
+        loadPayments();
     }, []);
 
     const loadProfile = async () => {
@@ -71,9 +77,23 @@ const UserProfilePage = () => {
         }
     };
 
+    const loadPayments = async () => {
+        try {
+            const data = await paymentsApi.getMyPayments();
+            setPayments(data || []);
+        } catch (err) {
+            console.error("Failed to load payments", err);
+        }
+    };
+
     const handleBookNow = (service) => {
         setSelectedService(service);
         setIsBookingModalOpen(true);
+    };
+
+    const handlePayNow = (booking) => {
+        setSelectedBookingForPayment(booking);
+        setIsPaymentModalOpen(true);
     };
 
     const handleInputChange = (e) => {
@@ -261,7 +281,32 @@ const UserProfilePage = () => {
                                                 <div className="text-right">
                                                     <span className="text-2xl font-bold text-gray-900">{booking.currency} {booking.price}</span>
                                                 </div>
-                                                {/* Future: Add Cancel button if pending */}
+                                                <div className="mt-4">
+                                                    {(() => {
+                                                        const payment = payments.find(p => p.booking_id === booking.id);
+                                                        if (payment) {
+                                                            return (
+                                                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
+                                                                    ${payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                                        payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                                                            'bg-yellow-100 text-yellow-800'}`}>
+                                                                    Payment: {payment.status}
+                                                                </span>
+                                                            );
+                                                        } else if (booking.status !== 'cancelled') {
+                                                            return (
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => handlePayNow(booking)}
+                                                                    className="bg-accent hover:bg-accent/90"
+                                                                >
+                                                                    Pay Now
+                                                                </Button>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
+                                                </div>
                                             </div>
                                         </div>
                                     </Card>
@@ -308,6 +353,15 @@ const UserProfilePage = () => {
                         loadBookings(); // Refresh bookings after close
                     }}
                     service={selectedService}
+                />
+
+                <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setIsPaymentModalOpen(false)}
+                    booking={selectedBookingForPayment}
+                    onPaymentSuccess={() => {
+                        loadPayments();
+                    }}
                 />
             </div>
         </div>
