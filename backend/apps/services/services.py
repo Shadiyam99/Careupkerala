@@ -115,12 +115,21 @@ def update_pricing(db: Session, pricing_id: str, data: ServicePricingUpdate, cur
     )
 
 
-def list_services(db: Session, current_user: dict) -> list[ServiceResponse]:
-    """List all services. Authenticated users only."""
-    if current_user["role"] not in ["admin", "nri", "companion"]:
-        raise ValueError("Authentication required")
+def list_services(db: Session, current_user: dict | None) -> list[ServiceResponse]:
+    """List all services. Public access allowed."""
+    # Optional: If you want to show inactive services only to admins, use current_user check here.
+    # For now, let's return all active services for public, or just all.
+    # Assuming public page needs all active ones. Admin dashboard needs all.
+    # Let's filter active only for non-admins?
     
-    services = db.query(Service).all()
+    query = db.query(Service)
+    
+    # If user is guest or not admin, show only active services?
+    # Given the landing page uses this, it makes sense.
+    if not current_user or current_user.get("role") != "admin":
+        query = query.filter(Service.is_active == True)
+        
+    services = query.all()
     return [
         ServiceResponse(
             id=s.id,

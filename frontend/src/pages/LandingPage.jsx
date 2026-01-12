@@ -1,14 +1,37 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { servicesApi } from '../api/services';
+import { BookingModal } from '../components/bookings/BookingModal';
 
 export default function LandingPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [services, setServices] = useState([]);
+    const [selectedService, setSelectedService] = useState(null);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+    useEffect(() => {
+        fetchServices();
+    }, []);
+
+    const fetchServices = async () => {
+        try {
+            const data = await servicesApi.getAll();
+            setServices(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleBookNow = (service) => {
+        setSelectedService(service);
+        setIsBookingModalOpen(true);
+    };
 
     useEffect(() => {
         if (user) {
@@ -110,52 +133,71 @@ export default function LandingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {/* Feature 1 - Verified Companions */}
-                        <Card className="flex flex-col bg-white hover:shadow-lg transition-all duration-300">
-                            <CardContent className="flex flex-1 flex-col p-8">
-                                <div className="mb-6 h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
-                                    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                <h3 className="mb-3 text-2xl font-bold text-primary">Verified Companions</h3>
-                                <p className="text-muted text-lg leading-relaxed mb-6 flex-1">
-                                    Every caregiver undergoes a rigorous 5-step background check, identity verification, and soft-skills training before joining our family.
-                                </p>
-                                <div className="h-40 w-full rounded-2xl bg-gray-50 border border-gray-100/50 flex items-end justify-center overflow-hidden relative">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1590650516494-0c8e4a4dd67e?q=80&w=2671&auto=format&fit=crop"
-                                        alt="Caregiver profile"
-                                        className="absolute inset-0 h-full w-full object-cover opacity-80"
-                                    />
-                                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                                    <div className="relative z-10 w-3/4 h-12 bg-white/90 backdrop-blur-md rounded-t-xl shadow-sm border-t border-x border-gray-100 mx-auto mb-0 flex items-center px-4 gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-700">✓</div>
-                                        <div className="h-2 w-20 rounded-full bg-gray-200"></div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 2 - Real-time Updates */}
-                        <Card className="flex flex-col bg-accent text-white hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 transform md:-mt-4">
-                            <CardContent className="flex flex-1 flex-col p-8">
-                                <div className="mb-6 h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
-                                    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="mb-3 text-2xl font-bold text-white">Real-time Updates</h3>
-                                    <p className="text-white/90 text-lg leading-relaxed">
-                                        Stay in the loop with instant photo updates, medication logs, and daily activity reports delivered directly to your phone.
-                                    </p>
-                                </div>
-                                <div className="mt-8 h-40 w-full rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
-                                    {/* UI Placeholder */}
-                                    <div className="flex gap-2">
-                                        <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-                                        <span className="text-sm font-medium text-white/80">Live Feed Active</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {/* Dynamic Services Grid */}
+                        {services.length > 0 ? (
+                            services.filter(s => s.is_active).map((service) => (
+                                <Card key={service.id} className="flex flex-col bg-white hover:shadow-lg transition-all duration-300">
+                                    <CardContent className="flex flex-1 flex-col p-8">
+                                        <div className="mb-6 h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                                            {/* Generic Service Icon */}
+                                            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                        </div>
+                                        <h3 className="mb-3 text-2xl font-bold text-primary">{service.name}</h3>
+                                        <p className="text-muted text-lg leading-relaxed mb-6 flex-1">
+                                            {service.description}
+                                        </p>
+                                        <div className="mt-auto">
+                                            <div className="flex items-end justify-between mb-4">
+                                                <div>
+                                                    <span className="text-sm text-muted">Starting from</span>
+                                                    <div className="text-xl font-bold text-primary">
+                                                        {service.pricing && service.pricing.length > 0
+                                                            ? `${service.pricing[0].currency} ${service.pricing[0].price}`
+                                                            : 'Contact for price'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                className="w-full"
+                                                onClick={() => handleBookNow(service)}
+                                            >
+                                                Book Now
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            // Fallback static cards if no services loaded (or API error)
+                            <>
+                                {/* Feature 1 - Verified Companions */}
+                                <Card className="flex flex-col bg-white hover:shadow-lg transition-all duration-300">
+                                    <CardContent className="flex flex-1 flex-col p-8">
+                                        <div className="mb-6 h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                                            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <h3 className="mb-3 text-2xl font-bold text-primary">Verified Companions</h3>
+                                        <p className="text-muted text-lg leading-relaxed mb-6 flex-1">
+                                            Every caregiver undergoes a rigorous 5-step background check, identity verification, and soft-skills training.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                {/* Feature 2 - Real-time Updates */}
+                                <Card className="flex flex-col bg-accent text-white hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 transform md:-mt-4">
+                                    <CardContent className="flex flex-1 flex-col p-8">
+                                        <div className="mb-6 h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
+                                            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="mb-3 text-2xl font-bold text-white">Real-time Updates</h3>
+                                            <p className="text-white/90 text-lg leading-relaxed">
+                                                Stay in the loop with instant photo updates and logs delivered to your phone.
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
 
                         {/* Feature 3 - Transparent Pricing */}
                         <Card className="flex flex-col bg-white hover:shadow-lg transition-all duration-300">
@@ -351,6 +393,12 @@ export default function LandingPage() {
             </section>
 
             <Footer />
+
+            <BookingModal
+                isOpen={isBookingModalOpen}
+                onClose={() => setIsBookingModalOpen(false)}
+                service={selectedService}
+            />
         </div>
     );
 }

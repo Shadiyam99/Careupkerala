@@ -21,6 +21,14 @@ class BookingResponse(BaseModel):
     status: str
     scheduled_date: datetime
     created_at: datetime
+    
+    # Details for UI
+    hospital_name: Optional[str] = None
+    service_name: Optional[str] = None
+    nri_name: Optional[str] = None
+    companion_name: Optional[str] = None
+    price: Optional[float] = None
+    currency: Optional[str] = None
 
 
 class BookingStatusUpdate(BaseModel):

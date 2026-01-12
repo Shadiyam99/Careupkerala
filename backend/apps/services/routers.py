@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from middleware.db import get_db
-from middleware.auth_utils import get_current_user
+from middleware.auth_utils import get_current_user, get_current_user_optional
 from apps.services.schemas import (
     ServiceCreate, ServiceUpdate, ServiceResponse,
     ServicePricingCreate, ServicePricingUpdate, ServicePricingResponse
@@ -72,7 +72,7 @@ def update_pricing_route(
 
 @router.get("", response_model=List[ServiceResponse])
 def list_services_route(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     try:
