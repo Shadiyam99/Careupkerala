@@ -23,6 +23,7 @@ class ServiceResponse(BaseModel):
     description: Optional[str]
     is_active: bool
     created_at: datetime
+    pricing: Optional[list['ServicePricingResponse']] = []
 
 
 class ServicePricingCreate(BaseModel):

@@ -8,7 +8,7 @@ from apps.services.schemas import (
     ServicePricingCreate, ServicePricingUpdate, ServicePricingResponse
 )
 from apps.services.services import (
-    create_service, update_service, add_pricing, update_pricing, list_services
+    create_service, update_service, add_pricing, update_pricing, list_services, delete_service
 )
 
 router = APIRouter(prefix="/services", tags=["services"])
@@ -78,4 +78,19 @@ def list_services_route(
     try:
         return list_services(db, current_user)
     except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.delete("/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_service_route(
+    service_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        delete_service(db, service_id, current_user)
+        return
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

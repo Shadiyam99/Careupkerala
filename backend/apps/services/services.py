@@ -127,7 +127,32 @@ def list_services(db: Session, current_user: dict) -> list[ServiceResponse]:
             name=s.name,
             description=s.description,
             is_active=s.is_active,
-            created_at=s.created_at
+            created_at=s.created_at,
+            pricing=[
+                ServicePricingResponse(
+                    id=p.id,
+                    service_id=p.service_id,
+                    price=p.price,
+                    currency=p.currency,
+                    created_at=p.created_at
+                ) for p in s.pricing
+            ]
         )
         for s in services
     ]
+
+
+def delete_service(db: Session, service_id: str, current_user: dict) -> bool:
+    """Delete service. Admin-only."""
+    if current_user["role"] != "admin":
+        raise ValueError("Only admins can delete services")
+    
+    service_uuid = UUID(service_id)
+    service = db.query(Service).filter(Service.id == service_uuid).first()
+    
+    if not service:
+        raise ValueError("Service not found")
+    
+    db.delete(service)
+    db.commit()
+    return True

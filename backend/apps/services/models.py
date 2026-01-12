@@ -15,14 +15,14 @@ class Service(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    pricing = relationship("ServicePricing", back_populates="service")
+    pricing = relationship("ServicePricing", back_populates="service", cascade="all, delete-orphan")
 
 
 class ServicePricing(Base):
     __tablename__ = "tbl_service_pricing"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    service_id = Column(UUID(as_uuid=True), ForeignKey("tbl_service.id"), nullable=False)
+    service_id = Column(UUID(as_uuid=True), ForeignKey("tbl_service.id", ondelete="CASCADE"), nullable=False)
     price = Column(Numeric, nullable=False)
     currency = Column(String, default="INR", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

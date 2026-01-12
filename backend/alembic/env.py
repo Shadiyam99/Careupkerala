@@ -29,9 +29,18 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-# Import all models here to ensure they are registered with Base
-# This will be populated as you create model files
-# Example: from app.models import User, Student, Parent, Admin
+from apps.admin_logs.models import AdminActionLog
+from apps.bookings.models import Booking
+from apps.care_feed.models import CareFeed
+# from apps.companions.models import Companion # Defined in auth.models
+from apps.complaints.models import Complaint
+from apps.feedback.models import Feedback
+from apps.hospitals.models import Hospital
+from apps.notifications.models import Notification
+from apps.payments.models import Payment
+from apps.services.models import Service, ServicePricing
+# from apps.users.models import User, NRIUser, Admin # Defined in auth.models
+from auth.models import Admin, NRIUser, Companion
 
 target_metadata = Base.metadata
 
