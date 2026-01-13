@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from apps.feedback.models import Feedback
 from apps.bookings.models import Booking
 from apps.feedback.schemas import FeedbackCreate
+from apps.notifications.services import create_notification
 from uuid import UUID
 
 
@@ -42,6 +43,23 @@ def create_feedback(db: Session, data: FeedbackCreate, current_user: dict):
     except IntegrityError:
         db.rollback()
         raise ValueError("Feedback already submitted for this booking")
+
+    # Notify Admin
+    try:
+        from auth.models import Admin
+        admin = db.query(Admin).first()
+        if admin:
+             create_notification(
+                db=db,
+                user_id=str(admin.id),
+                role="admin",
+                title="New Feedback Received",
+                message=f"Feedback received for booking {booking.id}. Rating: {data.rating}/5",
+                related_entity="feedback",
+                related_entity_id=feedback.id
+            )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
     
     return feedback
 

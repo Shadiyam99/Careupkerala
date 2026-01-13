@@ -12,6 +12,7 @@ import { Input } from '../../components/ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User } from 'lucide-react';
+import NotificationBell from '../../components/notifications/NotificationBell';
 
 const UserProfilePage = () => {
     const { logout } = useAuth();
@@ -139,9 +140,12 @@ const UserProfilePage = () => {
             <div className="max-w-5xl mx-auto space-y-8">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
-                    <Button variant="outline" onClick={logout} className="text-red-600 border-red-200 hover:bg-red-50">
-                        Logout
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <NotificationBell />
+                        <Button variant="outline" onClick={logout} className="text-red-600 border-red-200 hover:bg-red-50">
+                            Logout
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Tabs */}

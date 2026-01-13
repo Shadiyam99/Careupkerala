@@ -6,6 +6,7 @@ from auth.models import NRIUser, Companion
 from apps.hospitals.models import Hospital
 from apps.services.models import Service, ServicePricing
 from apps.admin_logs.services import log_admin_action
+from apps.notifications.services import create_notification
 
 
 def create_booking(db: Session, data: BookingCreate, current_user: dict) -> BookingResponse:
@@ -43,6 +44,27 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
     db.add(booking)
     db.commit()
     db.refresh(booking)
+
+    # Notify Admin
+    try:
+        # Get admin user (assuming there's an admin)
+        # For now, we'll fetch all admins or just notify a specific admin if we had ID.
+        # But wait, create_notification takes a user_id. 
+        # We need to find the admin ID. Let's look up the first admin for now.
+        from auth.models import Admin
+        admin = db.query(Admin).first()
+        if admin:
+             create_notification(
+                db=db,
+                user_id=str(admin.id),
+                role="admin",
+                title="New Booking Received",
+                message=f"New booking received from {current_user.get('sub', 'User')} for {hospital.name if hospital else 'Hospital'}", # sub usually has email/name
+                related_entity="booking",
+                related_entity_id=booking.id
+            )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
     
     return BookingResponse(
         id=booking.id,
@@ -203,6 +225,34 @@ def assign_companion(db: Session, booking_id: str, data: BookingAssignCompanion,
     booking.companion_id = data.companion_id
     db.commit()
     db.refresh(booking)
+
+    # Notify NRI User
+    try:
+        create_notification(
+            db=db,
+            user_id=str(booking.nri_id),
+            role="nri",
+            title="Companion Assigned",
+            message=f"Companion {companion.full_name} has been assigned to your booking.",
+            related_entity="booking",
+            related_entity_id=booking.id
+        )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
+
+    # Notify Companion
+    try:
+        create_notification(
+            db=db,
+            user_id=str(companion.id),
+            role="companion",
+            title="New Assignment",
+            message=f"You have been assigned to a new booking at {booking.hospital.name if booking.hospital else 'Hospital'}.",
+            related_entity="booking",
+            related_entity_id=booking.id
+        )
+    except Exception as e:
+        print(f"Failed to send notification to companion: {e}")
     
     return BookingResponse(
         id=booking.id,

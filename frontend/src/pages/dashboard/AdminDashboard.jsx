@@ -14,6 +14,7 @@ import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { cn } from '../../utils/cn';
+import NotificationBell from '../../components/notifications/NotificationBell';
 import {
     LayoutDashboard,
     Users,
@@ -27,8 +28,10 @@ import {
     ChevronLeft,
     ChevronRight,
     Wallet,
-    MessageSquare
+    MessageSquare,
+    BellRing
 } from 'lucide-react';
+import { notificationsApi } from '../../api/notifications';
 
 const AdminDashboard = () => {
     const { logout } = useAuth();
@@ -164,6 +167,8 @@ const AdminDashboard = () => {
             toastError('Failed to deactivate companion.');
         }
     };
+
+
 
     // Hospital Handlers
     const handleAddHospital = () => {
@@ -494,6 +499,7 @@ const AdminDashboard = () => {
                         </h2>
                     </div>
                     <div className="flex items-center gap-4">
+                        <NotificationBell />
                         <div className="hidden md:block text-right">
                             <p className="text-sm font-medium text-gray-900">Admin</p>
                             <p className="text-xs text-gray-500">Administrator</p>
@@ -544,6 +550,7 @@ const AdminDashboard = () => {
                                                 <p className="text-3xl font-bold text-yellow-800 mt-2">{stats.pending_companions}</p>
                                             </CardContent>
                                         </Card>
+
                                     </div>
                                 )}
 

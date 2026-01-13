@@ -40,24 +40,24 @@ def mark_as_read(
 
 #For testing we used temporary notification for it where admin create for testing purpose 
 
-@router.post("/test")
-def create_test_notification(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    if current_user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden")
+# @router.post("/test")
+# def create_test_notification(
+#     db: Session = Depends(get_db),
+#     current_user: dict = Depends(get_current_user),
+# ):
+#     if current_user["role"] != "admin":
+#         raise HTTPException(status_code=403, detail="Forbidden")
 
-    create_notification(
-    db=db,
-    user_id="7431c235-1fff-4502-ab58-98dbf65c41ad",
-    role="nri",
-    title="New Care Update",
-    message="A new live care update has been posted for your booking.",
-    related_entity="care_feed",
-)
+#     create_notification(
+#     db=db,
+#     user_id=current_user["user_id"],
+#     role="admin",
+#     title="New Care Update",
+#     message="A new live care update has been posted for your booking.",
+#     related_entity="care_feed",
+# )
 
-    return {"message": "Test notification created"}
+#     return {"message": "Test notification created"}
 
 
 #Notification 1 — Booking Created

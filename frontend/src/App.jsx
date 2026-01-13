@@ -8,6 +8,7 @@ import UserProfilePage from './pages/dashboard/UserProfilePage';
 import CompanionDashboard from './pages/dashboard/CompanionDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import FindCompanionPage from './pages/FindCompanionPage';
+import NotificationsPage from './pages/dashboard/NotificationsPage';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -42,6 +43,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/notifications"
+              element={
+                <ProtectedRoute allowedRoles={['nri', 'companion', 'admin']}>
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />

@@ -9,6 +9,7 @@ import { PostCareFeedModal } from '../../components/care-feed/PostCareFeedModal'
 import { CareFeedModal } from '../../components/care-feed/CareFeedModal';
 import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import { Calendar, Clock, MapPin, Activity, User, Phone, Mail, CheckCircle, XCircle } from 'lucide-react';
+import NotificationBell from '../../components/notifications/NotificationBell';
 
 const CompanionDashboard = () => {
     const { logout } = useAuth();
@@ -127,6 +128,9 @@ const CompanionDashboard = () => {
                                 }`}>
                                 {profile?.availability_status === 'available' ? 'Online' : 'Offline'}
                             </span>
+                            <div className="mx-2">
+                                <NotificationBell />
+                            </div>
                             <Button variant="outline" onClick={logout} className="text-red-600 border-red-200 hover:bg-red-50">
                                 Logout
                             </Button>

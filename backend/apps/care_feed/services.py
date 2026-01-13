@@ -3,6 +3,7 @@ from uuid import UUID
 from apps.care_feed.models import CareFeed
 from apps.care_feed.schemas import CareFeedCreate, CareFeedResponse
 from apps.bookings.models import Booking
+from apps.notifications.services import create_notification
 
 
 def create_care_feed(db: Session, data: CareFeedCreate, current_user: dict) -> CareFeedResponse:
@@ -29,6 +30,35 @@ def create_care_feed(db: Session, data: CareFeedCreate, current_user: dict) -> C
     db.add(care_feed)
     db.commit()
     db.refresh(care_feed)
+
+    # Notify NRI User
+    try:
+        if booking.nri_id:
+            create_notification(
+                db=db,
+                user_id=str(booking.nri_id),
+                role="nri",
+                title="New Care Update",
+                message=f"New update posted for your booking: {data.message[:50]}...",
+                related_entity="care_feed",
+                related_entity_id=care_feed.id
+            )
+        
+        # Notify Admin
+        from auth.models import Admin
+        admin = db.query(Admin).first()
+        if admin:
+             create_notification(
+                db=db,
+                user_id=str(admin.id),
+                role="admin",
+                title="New Care Feed Posted",
+                message=f"New update for booking {booking.id} by companion: {data.message[:50]}...",
+                related_entity="care_feed",
+                related_entity_id=care_feed.id
+            )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
     
     return CareFeedResponse(
         id=care_feed.id,

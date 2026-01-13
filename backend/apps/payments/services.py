@@ -5,6 +5,7 @@ from apps.payments.schemas import PaymentCreate, PaymentResponse, PaymentStatusU
 from apps.bookings.models import Booking
 from apps.services.models import ServicePricing
 from apps.admin_logs.services import log_admin_action
+from apps.notifications.services import create_notification
 
 
 def create_payment(db: Session, data: PaymentCreate, current_user: dict) -> PaymentResponse:
@@ -42,6 +43,23 @@ def create_payment(db: Session, data: PaymentCreate, current_user: dict) -> Paym
     db.add(payment)
     db.commit()
     db.refresh(payment)
+
+    # Notify Admin
+    try:
+        from auth.models import Admin
+        admin = db.query(Admin).first()
+        if admin:
+             create_notification(
+                db=db,
+                user_id=str(admin.id),
+                role="admin",
+                title="Payment Received",
+                message=f"Payment of {payment.currency} {payment.amount} received via {payment.payment_method}",
+                related_entity="payment",
+                related_entity_id=payment.id
+            )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
     
     return PaymentResponse(
         id=payment.id,

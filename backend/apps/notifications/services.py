@@ -7,8 +7,8 @@ def get_my_notifications(db: Session, current_user: dict):
     role = current_user.get("role")
     user_id = UUID(current_user.get("user_id"))
     
-    if role not in ["nri", "admin"]:
-        raise ValueError("Only NRI and Admin users can view notifications")
+    if role not in ["nri", "admin", "companion"]:
+        raise ValueError("Role unauthorized to view notifications")
     
     notifications = db.query(Notification).filter(
         Notification.user_id == user_id,
@@ -22,8 +22,8 @@ def mark_notification_read(db: Session, notification_id: UUID, current_user: dic
     role = current_user.get("role")
     user_id = UUID(current_user.get("user_id"))
     
-    if role not in ["nri", "admin"]:
-        raise ValueError("Only NRI and Admin users can mark notifications as read")
+    if role not in ["nri", "admin", "companion"]:
+        raise ValueError("Role unauthorized to mark notifications as read")
     
     notification = db.query(Notification).filter(Notification.id == notification_id).first()
     

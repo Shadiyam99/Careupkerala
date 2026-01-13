@@ -5,6 +5,7 @@ from apps.complaints.schemas import ComplaintCreate, ComplaintAdminUpdate
 from uuid import UUID
 from datetime import datetime
 from apps.admin_logs.services import log_admin_action
+from apps.notifications.services import create_notification
 
 
 def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
@@ -31,6 +32,23 @@ def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
     db.add(complaint)
     db.commit()
     db.refresh(complaint)
+
+    # Notify Admin
+    try:
+        from auth.models import Admin
+        admin = db.query(Admin).first()
+        if admin:
+             create_notification(
+                db=db,
+                user_id=str(admin.id),
+                role="admin",
+                title="New Complaint Filed",
+                message=f"New complaint filed for booking {booking.id}. Status: Open.",
+                related_entity="complaint",
+                related_entity_id=complaint.id
+            )
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
     
     return complaint
 
