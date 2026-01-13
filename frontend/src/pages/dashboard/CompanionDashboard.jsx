@@ -170,23 +170,29 @@ const CompanionDashboard = () => {
                 {activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Status Card */}
-                        <Card className="col-span-1 border-t-4 border-t-accent">
-                            <CardContent className="p-6 text-center">
-                                <h3 className="text-lg font-medium text-gray-700 mb-4">Availability</h3>
-                                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 transition-colors duration-300 ${profile?.availability_status === 'available'
-                                    ? 'bg-green-100 text-green-600 ring-4 ring-green-50'
-                                    : 'bg-gray-100 text-gray-400 ring-4 ring-gray-50'
+                        <Card className="col-span-1 shadow-sm rounded-xl overflow-hidden h-full">
+                            <CardContent className="p-8 flex flex-col items-center justify-center h-full">
+                                <h3 className="text-gray-500 font-medium mb-8">Availability</h3>
+
+                                <div className={`relative flex items-center justify-center w-24 h-24 rounded-full mb-8 transition-all duration-500 ${profile?.availability_status === 'available'
+                                        ? 'bg-emerald-50 text-emerald-500'
+                                        : 'bg-gray-50 text-gray-400'
                                     }`}>
-                                    <Activity className="w-8 h-8" />
+                                    {profile?.availability_status === 'available' && (
+                                        <div className="absolute inset-0 rounded-full bg-emerald-100 animate-ping opacity-20"></div>
+                                    )}
+                                    <Activity className={`w-10 h-10 ${profile?.availability_status === 'available' ? 'text-emerald-500' : 'text-gray-400'}`} />
                                 </div>
-                                <p className="text-xl font-bold mb-6 capitalize text-gray-900">
+
+                                <h2 className="text-2xl font-bold text-gray-900 mb-8 capitalize">
                                     {profile?.availability_status || 'Unavailable'}
-                                </p>
+                                </h2>
+
                                 <Button
                                     onClick={toggleAvailability}
-                                    className={`w-full ${profile?.availability_status === 'available'
-                                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                    className={`w-full py-6 rounded-xl text-base font-semibold shadow-sm transition-all ${profile?.availability_status === 'available'
+                                            ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-200'
+                                            : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
                                         }`}
                                 >
                                     {profile?.availability_status === 'available' ? 'Go Offline' : 'Go Online'}
@@ -195,21 +201,22 @@ const CompanionDashboard = () => {
                         </Card>
 
                         {/* Profile Details */}
-                        <Card className="col-span-1 md:col-span-2">
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle>Profile Details</CardTitle>
+                        <Card className="col-span-1 md:col-span-2 shadow-sm rounded-xl overflow-hidden h-full">
+                            <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-gray-50">
+                                <CardTitle className="text-xl font-bold text-gray-900">Profile Details</CardTitle>
                                 <Button
                                     variant="ghost"
                                     onClick={() => isEditing ? handleUpdateProfile() : setIsEditing(true)}
-                                    className="text-sm text-primary hover:text-primary-dark"
+                                    className="text-xs font-medium text-gray-500 hover:text-gray-900"
                                 >
-                                    {isEditing ? 'Save Changes' : 'Edit Profile'}
+                                    {isEditing ? 'Save Details' : 'Edit Profile'}
                                 </Button>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <CardContent className="p-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+                                    {/* Full Name */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-400 font-normal">
                                             <User className="w-4 h-4" /> Full Name
                                         </label>
                                         {isEditing ? (
@@ -217,22 +224,24 @@ const CompanionDashboard = () => {
                                                 type="text"
                                                 value={editForm.full_name}
                                                 onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2 border"
+                                                className="w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-zinc-900 focus:ring-zinc-900 p-2.5 text-sm transition-all"
                                             />
                                         ) : (
-                                            <p className="text-gray-900 font-medium">{profile?.full_name}</p>
+                                            <p className="text-lg font-medium text-gray-900">{profile?.full_name}</p>
                                         )}
                                     </div>
 
+                                    {/* Email */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-400 font-normal">
                                             <Mail className="w-4 h-4" /> Email
                                         </label>
-                                        <p className="text-gray-900">{profile?.email}</p>
+                                        <p className="text-lg font-medium text-gray-900">{profile?.email}</p>
                                     </div>
 
+                                    {/* Phone */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-400 font-normal">
                                             <Phone className="w-4 h-4" /> Phone
                                         </label>
                                         {isEditing ? (
@@ -240,32 +249,37 @@ const CompanionDashboard = () => {
                                                 type="tel"
                                                 value={editForm.phone}
                                                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2 border"
+                                                className="w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-zinc-900 focus:ring-zinc-900 p-2.5 text-sm transition-all"
                                             />
                                         ) : (
-                                            <p className="text-gray-900">{profile?.phone}</p>
+                                            <p className="text-lg font-medium text-gray-900">{profile?.phone}</p>
                                         )}
                                     </div>
 
+                                    {/* Status */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-400 font-normal">
                                             <CheckCircle className="w-4 h-4" /> Status
                                         </label>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${profile?.status ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {profile?.status ? 'Active' : 'Pending Approval'}
-                                        </span>
+                                        <div>
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${profile?.status
+                                                    ? 'bg-blue-50 text-blue-600'
+                                                    : 'bg-amber-50 text-amber-600'
+                                                }`}>
+                                                {profile?.status ? 'Active' : 'Pending Approval'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 {isEditing && (
-                                    <div className="flex justify-end pt-2">
+                                    <div className="flex justify-end pt-6 border-t border-gray-50 mt-8">
                                         <Button
                                             variant="ghost"
                                             onClick={() => {
                                                 setIsEditing(false);
                                                 setEditForm({ full_name: profile?.full_name || '', phone: profile?.phone || '' });
                                             }}
-                                            className="text-gray-500 hover:text-gray-700 mr-2"
+                                            className="text-gray-400 hover:text-gray-600 mr-2"
                                         >
                                             Cancel
                                         </Button>

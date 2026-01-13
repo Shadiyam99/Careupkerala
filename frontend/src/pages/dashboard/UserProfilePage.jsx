@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User, Phone } from 'lucide-react';
+import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User, Phone, MessageSquare, Star } from 'lucide-react';
 import NotificationBell from '../../components/notifications/NotificationBell';
 
 const UserProfilePage = () => {
@@ -216,84 +216,123 @@ const UserProfilePage = () => {
 
                 {/* Error handled by toast */}
 
-                {activeTab === 'profile' && (
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-semibold text-gray-800">Personal Information</h2>
-                                <Button
-                                    variant={isEditing ? "ghost" : "outline"}
-                                    onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
-                                >
-                                    {isEditing ? 'Cancel' : 'Edit Profile'}
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
+                        <Button
+                            variant="outline"
+                            onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
+                            className="bg-white hover:bg-gray-50"
+                        >
+                            {isEditing ? 'Cancel Edit' : 'Edit Information'}
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Full Name */}
+                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
+                            <CardContent className="p-6 flex items-start space-x-4">
+                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
+                                    <User className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Full Name</p>
                                     {isEditing ? (
                                         <Input
                                             name="full_name"
                                             value={formData.full_name}
                                             onChange={handleInputChange}
+                                            className="font-bold text-gray-900 border-blue-200 focus:border-blue-500"
                                         />
                                     ) : (
-                                        <p className="text-gray-900 text-lg">{profile?.full_name}</p>
+                                        <h4 className="text-xl font-bold text-gray-900">{profile?.full_name}</h4>
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                                    <p className="text-gray-500 text-lg">{profile?.email}</p>
-                                    <span className="text-xs text-gray-400">Email cannot be changed</span>
+                        {/* Email */}
+                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
+                            <CardContent className="p-6 flex items-start space-x-4">
+                                <div className="p-3 bg-orange-50 text-orange-600 rounded-xl group-hover:scale-110 transition-transform">
+                                    <Mail className="w-6 h-6" />
                                 </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
+                                    <h4 className="text-lg font-bold text-gray-900 truncate" title={profile?.email}>{profile?.email}</h4>
+                                    <span className="text-xs text-orange-400 font-medium">Verified</span>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        {/* Phone */}
+                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
+                            <CardContent className="p-6 flex items-start space-x-4">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:scale-110 transition-transform">
+                                    <Phone className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Phone Number</p>
                                     {isEditing ? (
                                         <Input
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleInputChange}
+                                            className="font-bold text-gray-900 border-purple-200 focus:border-purple-500"
                                         />
                                     ) : (
-                                        <p className="text-gray-900 text-lg">{profile?.phone}</p>
+                                        <h4 className="text-xl font-bold text-gray-900">{profile?.phone}</h4>
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                        {/* Country */}
+                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
+                            <CardContent className="p-6 flex items-start space-x-4">
+                                <div className="p-3 bg-teal-50 text-teal-600 rounded-xl group-hover:scale-110 transition-transform">
+                                    <MapPin className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Country</p>
                                     {isEditing ? (
                                         <Input
                                             name="country"
                                             value={formData.country}
                                             onChange={handleInputChange}
+                                            className="font-bold text-gray-900 border-teal-200 focus:border-teal-500"
                                         />
                                     ) : (
-                                        <p className="text-gray-900 text-lg">{profile?.country || 'Not set'}</p>
+                                        <h4 className="text-xl font-bold text-gray-900">{profile?.country || 'Not Set'}</h4>
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Account Role</label>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
+                        {/* Role */}
+                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
+                            <CardContent className="p-6 flex items-start space-x-4">
+                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
+                                    <User className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Account Role</p>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-rose-100 text-rose-800 capitalize">
                                         {profile?.role}
                                     </span>
                                 </div>
-                            </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                            {isEditing && (
-                                <div className="flex justify-end pt-4 border-t border-gray-100">
-                                    <Button onClick={handleSave} isLoading={loading}>
-                                        Save Changes
-                                    </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                    {isEditing && (
+                        <div className="flex justify-end pt-4">
+                            <Button onClick={handleSave} isLoading={loading} className="px-8 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all">
+                                Save Changes
+                            </Button>
+                        </div>
+                    )}
+                </div>
 
                 {/* My Bookings Tab */}
                 {activeTab === 'bookings' && (
@@ -309,159 +348,139 @@ const UserProfilePage = () => {
                             <div className="grid gap-6">
                                 {myBookings.map((booking) => (
                                     <div key={booking.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
-                                        <div className="p-6">
-                                            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+                                        <CardContent className="p-6">
+                                            {/* Header Section */}
+                                            <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                                                 <div>
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <h3 className="text-lg font-bold text-gray-900">{booking.service_name}</h3>
+                                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                                                             booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
                                                                 booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                                                                     'bg-amber-100 text-amber-700'
                                                             }`}>
                                                             {booking.status}
                                                         </span>
-                                                        {booking.companion_name && (
-                                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                                                <span className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
-                                                                    <User className="w-3 h-3 mr-1" />
-                                                                    {booking.companion_name}
-                                                                </span>
-                                                                {booking.companion_phone && (
-                                                                    <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                                                                        <Phone className="w-3 h-3 mr-1" />
-                                                                        <a href={`tel:${booking.companion_phone}`} className="hover:underline">
-                                                                            {booking.companion_phone}
-                                                                        </a>
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
                                                     </div>
-                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">{booking.service_name}</h3>
-                                                    <div className="flex items-center text-gray-500 mt-1 text-sm">
-                                                        <MapPin className="w-4 h-4 mr-1 text-gray-400" />
+                                                    <div className="flex items-center text-gray-500 text-sm">
+                                                        <MapPin className="w-4 h-4 mr-1.5 text-gray-400" />
                                                         {booking.hospital_name}
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end justify-center">
-                                                    <div className="text-2xl font-bold text-gray-900">{booking.currency} {booking.price}</div>
-                                                    <div className="text-xs text-gray-400 uppercase tracking-wide font-medium">Total Amount</div>
+
+                                                <div className="text-right">
+                                                    <div className="text-xl font-bold text-gray-900">{booking.currency} {booking.price}</div>
+                                                    {(() => {
+                                                        const payment = payments.find(p => p.booking_id === booking.id);
+                                                        if (payment?.status === 'paid') {
+                                                            return <div className="text-xs font-medium text-emerald-600 flex items-center justify-end"><CheckCircle className="w-3 h-3 mr-1" /> Paid</div>;
+                                                        } else if (booking.status !== 'cancelled') {
+                                                            return <div className="text-xs font-medium text-amber-600 flex items-center justify-end"><AlertCircle className="w-3 h-3 mr-1" /> Payment Pending</div>;
+                                                        }
+                                                        return null;
+                                                    })()}
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-t border-gray-100 border-b mb-4">
-                                                <div className="flex items-center">
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
-                                                        <Calendar className="w-4 h-4 text-zinc-600" />
+                                            {/* Info Grid */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-8 py-4 border-t border-b border-gray-50 mb-4 text-sm">
+                                                {/* Date & Time */}
+                                                <div>
+                                                    <div className="text-xs text-gray-400 font-medium uppercase mb-1">Schedule</div>
+                                                    <div className="flex items-center text-gray-700 font-medium">
+                                                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                                                        {new Date(booking.scheduled_date).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}
                                                     </div>
-                                                    <div>
-                                                        <div className="text-xs text-gray-500 font-medium uppercase">Date</div>
-                                                        <div className="text-sm font-semibold text-gray-900">
-                                                            {new Date(booking.scheduled_date).toLocaleDateString('en-IN', {
-                                                                timeZone: 'Asia/Kolkata',
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </div>
+                                                    <div className="flex items-center text-gray-500 mt-1 pl-6 text-xs">
+                                                        at {new Date(booking.scheduled_date).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center">
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
-                                                        <Clock className="w-4 h-4 text-zinc-600" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-xs text-gray-500 font-medium uppercase">Time</div>
-                                                        <div className="text-sm font-semibold text-gray-900">
-                                                            {new Date(booking.scheduled_date).toLocaleTimeString('en-IN', {
-                                                                timeZone: 'Asia/Kolkata',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
+
+                                                {/* Companion Info */}
+                                                <div>
+                                                    <div className="text-xs text-gray-400 font-medium uppercase mb-1">Companion</div>
+                                                    {booking.companion_name ? (
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center text-gray-700 font-medium">
+                                                                <User className="w-4 h-4 mr-2 text-gray-400" />
+                                                                {booking.companion_name}
+                                                            </div>
+                                                            {booking.companion_phone && (
+                                                                <a href={`tel:${booking.companion_phone}`} className="flex items-center text-emerald-600 hover:underline pl-6 text-xs">
+                                                                    <Phone className="w-3 h-3 mr-1.5" />
+                                                                    {booking.companion_phone}
+                                                                </a>
+                                                            )}
                                                         </div>
-                                                    </div>
+                                                    ) : (
+                                                        <div className="flex items-center text-gray-400 italic">
+                                                            <User className="w-4 h-4 mr-2 text-gray-300" />
+                                                            Pending Assignment
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="flex items-center">
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
-                                                        <CreditCard className="w-4 h-4 text-zinc-600" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-xs text-gray-500 font-medium uppercase">Payment</div>
-                                                        <div className="text-sm font-semibold text-gray-900">
-                                                            {(() => {
-                                                                const payment = payments.find(p => p.booking_id === booking.id);
-                                                                if (payment) return <span className={payment.status === 'paid' ? "text-emerald-600" : "text-amber-600"}>{payment.status === 'paid' ? 'Paid' : 'Pending'}</span>;
-                                                                return <span className="text-gray-400">Not Initiated</span>;
-                                                            })()}
-                                                        </div>
-                                                    </div>
+
+                                                {/* Status Context */}
+                                                <div>
+                                                    <div className="text-xs text-gray-400 font-medium uppercase mb-1">Updates</div>
+                                                    {(booking.status === 'assigned' || booking.status === 'completed') ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleOpenFeed(booking)}
+                                                            className="h-auto p-0 text-zinc-500 hover:text-zinc-900 hover:bg-transparent font-medium"
+                                                        >
+                                                            <MessageSquare className="w-4 h-4 mr-1.5" />
+                                                            View Care Feed
+                                                        </Button>
+                                                    ) : (
+                                                        <span className="text-gray-400 italic text-xs">No updates yet</span>
+                                                    )}
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-end gap-3">
-                                                {(booking.status === 'assigned' || booking.status === 'completed') && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleOpenFeed(booking)}
-                                                        className="text-gray-600 hover:text-zinc-900 hover:bg-zinc-100"
-                                                    >
-                                                        View Updates
-                                                    </Button>
-                                                )}
-
+                                            {/* Action Bar */}
+                                            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleOpenComplaint(booking)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    className="w-full sm:w-auto text-gray-500 hover:text-red-600 hover:bg-red-50"
                                                 >
-                                                    Report Issue
+                                                    Report an Issue
                                                 </Button>
 
-                                                {(() => {
-                                                    const payment = payments.find(p => p.booking_id === booking.id);
-                                                    if (payment) {
-                                                        if (payment.status === 'paid') {
+                                                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
+                                                    {booking.status === 'completed' && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleOpenFeedback(booking)}
+                                                            className="w-full sm:w-auto bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 shadow-sm"
+                                                        >
+                                                            <Star className="w-4 h-4 mr-1.5 fill-current text-zinc-400 group-hover:text-zinc-600" />
+                                                            Leave Review
+                                                        </Button>
+                                                    )}
+
+                                                    {(() => {
+                                                        const payment = payments.find(p => p.booking_id === booking.id);
+                                                        if (!payment && booking.status !== 'cancelled') {
                                                             return (
-                                                                <div className="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-medium">
-                                                                    <CheckCircle className="w-4 h-4 mr-1.5" />
-                                                                    Payment Complete
-                                                                    {booking.status === 'completed' && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            onClick={() => handleOpenFeedback(booking)}
-                                                                            className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                                                                        >
-                                                                            Leave Review
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        } else {
-                                                            return (
-                                                                <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg text-sm font-medium">
-                                                                    <AlertCircle className="w-4 h-4 mr-1.5" />
-                                                                    Payment {payment.status}
-                                                                </div>
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => handlePayNow(booking)}
+                                                                    className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-white"
+                                                                >
+                                                                    Pay Amount
+                                                                    <ChevronRight className="w-4 h-4 ml-1" />
+                                                                </Button>
                                                             );
                                                         }
-                                                    } else if (booking.status !== 'cancelled') {
-                                                        return (
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handlePayNow(booking)}
-                                                                className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md hover:shadow-lg transition-all"
-                                                            >
-                                                                Pay Now <ChevronRight className="w-4 h-4 ml-1" />
-                                                            </Button>
-                                                        );
-                                                    }
-                                                    return null;
-                                                })()}
+                                                        return null;
+                                                    })()}
+                                                </div>
                                             </div>
-                                        </div>
+                                        </CardContent>
                                     </div>
                                 ))}
                             </div>
