@@ -73,29 +73,34 @@ def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
     return map_complaint_response(complaint)
 
 
-def get_my_complaints(db: Session, current_user: dict):
+
+def get_my_complaints(db: Session, current_user: dict, page: int = 1, limit: int = 10):
     role = current_user.get("role")
     user_id = UUID(current_user.get("user_id"))
     
     if role != "nri":
         raise ValueError("Only NRI users can view their complaints")
     
-    complaints = db.query(Complaint).filter(
-        Complaint.nri_user_id == user_id
-    ).order_by(Complaint.created_at.desc()).all()
+    query = db.query(Complaint).filter(Complaint.nri_user_id == user_id)
+    total = query.count()
+    complaints = query.order_by(Complaint.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
     
-    return [map_complaint_response(c) for c in complaints]
+    items = [map_complaint_response(c) for c in complaints]
+    return items, total
 
 
-def get_all_complaints(db: Session, current_user: dict):
+def get_all_complaints(db: Session, current_user: dict, page: int = 1, limit: int = 10):
     role = current_user.get("role")
     
     if role != "admin":
         raise ValueError("Only Admin users can view all complaints")
     
-    complaints = db.query(Complaint).order_by(Complaint.created_at.desc()).all()
+    query = db.query(Complaint)
+    total = query.count()
+    complaints = query.order_by(Complaint.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
     
-    return [map_complaint_response(c) for c in complaints]
+    items = [map_complaint_response(c) for c in complaints]
+    return items, total
 
 
 def update_complaint(db: Session, complaint_id: UUID, data: ComplaintAdminUpdate, current_user: dict):

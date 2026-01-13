@@ -8,14 +8,18 @@ export const bookingsApi = {
     },
 
     // Get my bookings (User)
-    getMyBookings: async () => {
-        const response = await axios.get('/bookings/me');
+    getMyBookings: async (page = 1, limit = 10) => {
+        const response = await axios.get('/bookings/me', {
+            params: { page, limit }
+        });
         return response.data;
     },
 
     // Get all bookings (Admin)
-    getAll: async () => {
-        const response = await axios.get('/bookings');
+    getAll: async (page = 1, limit = 10) => {
+        const response = await axios.get('/bookings', {
+            params: { page, limit }
+        });
         return response.data;
     },
 

@@ -155,7 +155,7 @@ Manages user profile viewing and updating for authenticated users.
 
 ### Endpoints
 
-#### GET /users/profile
+#### GET /users/me
 - **Role**: NRI, Admin, Companion
 - **Description**: View own profile information
 
@@ -173,7 +173,7 @@ Manages user profile viewing and updating for authenticated users.
 }
 ```
 
-#### PUT /users/profile
+#### PUT /users/me
 - **Role**: NRI, Admin, Companion
 - **Description**: Update own profile (role-specific fields)
 
@@ -259,6 +259,32 @@ Manages companion approval workflow and availability status.
 #### GET /companions/me
 - **Role**: Companion only
 - **Description**: View own companion profile
+
+**Success Response (200)**:
+```json
+{
+  "id": "uuid",
+  "full_name": "Jane Smith",
+  "email": "jane@example.com",
+  "phone": "+919876543210",
+  "availability_status": "available",
+  "status": true
+}
+```
+
+#### PUT /companions/me
+- **Role**: Companion only
+- **Description**: Update own profile information
+
+**Request Body**:
+```json
+{
+  "full_name": "Jane Smith Updated",
+  "phone": "+919876543211",
+  "experience_years": 5,
+  "specialization": "Elderly Care"
+}
+```
 
 #### PUT /companions/me/availability
 - **Role**: Companion only
@@ -481,11 +507,15 @@ Core booking workflow connecting NRI users with services, hospitals, and compani
 
 #### GET /bookings/me
 - **Role**: NRI only
-- **Description**: View own bookings
+- **Description**: View own bookings (paginated)
+- **Parameters**: `page` (default 1), `limit` (default 100)
+- **Response**: `{ items: [Booking], total: int }`
 
 #### GET /bookings
 - **Role**: Admin only
-- **Description**: View all bookings
+- **Description**: View all bookings (paginated)
+- **Parameters**: `page` (default 1), `limit` (default 100)
+- **Response**: `{ items: [Booking], total: int }`
 
 #### PUT /bookings/{booking_id}/status
 - **Role**: Admin only
@@ -627,6 +657,22 @@ Timeline system for companions to post care updates for assigned bookings.
 - **Role**: Companion only
 - **Description**: View care feed for own assigned bookings
 
+#### GET /care-feed/assigned
+- **Role**: Companion only
+- **Description**: View care feeds for all currently assigned bookings
+
+**Success Response (200)**:
+```json
+[
+  {
+    "id": "uuid",
+    "booking_id": "uuid",
+    "message": "Patient vitals checked.",
+    "created_at": "2024-01-01T10:00:00"
+  }
+]
+```
+
 #### GET /care-feed/booking/{booking_id}
 - **Role**: NRI (own bookings), Admin (all)
 - **Description**: View care feed for specific booking
@@ -763,11 +809,15 @@ Allows NRI users to raise complaints and admins to manage them.
 
 #### GET /complaints/me
 - **Role**: NRI only
-- **Description**: View own complaints
+- **Description**: View own complaints (paginated)
+- **Parameters**: `page` (default 1), `limit` (default 10)
+- **Response**: `{ items: [Complaint], total: int }`
 
 #### GET /complaints
 - **Role**: Admin only
-- **Description**: View all complaints
+- **Description**: View all complaints (paginated)
+- **Parameters**: `page` (default 1), `limit` (default 10)
+- **Response**: `{ items: [Complaint], total: int }`
 
 #### PUT /complaints/{complaint_id}
 - **Role**: Admin only
@@ -952,29 +1002,26 @@ Append-only audit trail for admin actions.
 
 #### GET /admin-logs
 - **Role**: Admin only
-- **Description**: View all admin action logs (newest first)
+- **Description**: View all admin action logs (paginated)
+- **Parameters**: `page` (default 1), `limit` (default 10)
 
 **Success Response (200)**:
 ```json
-[
-  {
-    "id": "uuid",
-    "action_type": "approve",
-    "entity_type": "companion",
-    "entity_id": "uuid",
-    "description": "Approved companion: Jane Smith",
-    "created_at": "2024-01-01T10:00:00"
-  },
-  {
-    "id": "uuid",
-    "action_type": "update_status",
-    "entity_type": "payment",
-    "entity_id": "uuid",
-    "description": "Updated payment status to: paid",
-    "created_at": "2024-01-01T09:30:00"
-  }
-]
+{
+  "logs": [
+    {
+      "id": "uuid",
+      "action_type": "approve",
+      "entity_type": "companion",
+      "entity_id": "uuid",
+      "description": "Approved companion: Jane Smith",
+      "created_at": "2024-01-01T10:00:00"
+    }
+  ],
+  "total": 50
+}
 ```
+
 
 ### Logged Actions
 

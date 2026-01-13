@@ -179,6 +179,7 @@ def update_my_availability(db: Session, current_user: dict, data: CompanionAvail
     )
 
 
+
 def get_companions_availability(db: Session, current_user: dict):
     role = current_user.get("role")
     
@@ -188,3 +189,21 @@ def get_companions_availability(db: Session, current_user: dict):
     companions = db.query(Companion).all()
     
     return companions
+
+
+def get_public_companions(db: Session):
+    """Get all public available companions. No auth required."""
+    companions = db.query(Companion).filter(
+        Companion.status == True,
+        Companion.availability_status == "available"
+    ).all()
+    
+    return [
+        CompanionAvailabilityResponse(
+            id=c.id,
+            full_name=c.full_name,
+            availability_status=c.availability_status,
+            status=c.status
+        )
+        for c in companions
+    ]

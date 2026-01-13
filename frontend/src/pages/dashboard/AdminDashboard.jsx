@@ -31,9 +31,13 @@ import {
     MessageSquare,
     BellRing,
     AlertCircle,
-    Star
+    Star,
+    Globe,
+    Clock,
+    CheckCircle
 } from 'lucide-react';
 import { notificationsApi } from '../../api/notifications';
+import { dashboardApi } from '../../api/dashboard';
 import ComplaintsPage from './ComplaintsPage';
 import FeedbackPage from './FeedbackPage';
 
@@ -42,7 +46,13 @@ const AdminDashboard = () => {
     const { success, error: toastError } = useToast();
     const [activeTab, setActiveTab] = useState('overview');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [error, setError] = useState('');
     const [stats, setStats] = useState(null);
+    const [revenueStats, setRevenueStats] = useState(null);
+    const [bookingStats, setBookingStats] = useState(null);
+    const [complaintStats, setComplaintStats] = useState(null);
+    const [companionStats, setCompanionStats] = useState(null);
+
     const [pendingCompanions, setPendingCompanions] = useState([]);
     const [logs, setLogs] = useState([]);
     const [hospitals, setHospitals] = useState([]);
@@ -109,8 +119,21 @@ const AdminDashboard = () => {
         setLoading(true);
         try {
             if (activeTab === 'overview') {
-                const data = await adminApi.getOverview();
-                setStats(data);
+                // Fetch all dashboard stats in parallel
+                const [overviewData, revenueData, bookingStatusData, complaintData, companionData] = await Promise.all([
+                    dashboardApi.getOverview(),
+                    dashboardApi.getRevenue(),
+                    dashboardApi.getBookingStatus(),
+                    dashboardApi.getComplaintSummary(),
+                    dashboardApi.getCompanionSummary()
+                ]);
+
+                setStats(overviewData);
+                setRevenueStats(revenueData);
+                setBookingStats(bookingStatusData);
+                setComplaintStats(complaintData);
+                setCompanionStats(companionData);
+
             } else if (activeTab === 'companions') {
                 const data = await companionsApi.getPendingCompanions(currentPage, ITEMS_PER_PAGE);
                 setPendingCompanions(data.companions || []);
@@ -128,9 +151,9 @@ const AdminDashboard = () => {
                 setServices(data || []);
                 setTotalPages(1); // Services not paginated yet
             } else if (activeTab === 'bookings') {
-                const data = await bookingsApi.getAll();
-                setBookings(data || []);
-                setTotalPages(1); // Bookings not paginated yet
+                const data = await bookingsApi.getAll(currentPage, ITEMS_PER_PAGE);
+                setBookings(data.items || []);
+                setTotalPages(Math.ceil((data.total || 0) / ITEMS_PER_PAGE));
             } else if (activeTab === 'payments') {
                 const data = await paymentsApi.getAll();
                 setPayments(data || []);
@@ -531,32 +554,170 @@ const AdminDashboard = () => {
                             <div className="animate-fade-in-up">
                                 {/* Overview Tab */}
                                 {activeTab === 'overview' && stats && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <p className="text-sm font-medium text-gray-500">Total Users</p>
-                                                <p className="text-3xl font-bold text-primary mt-2">{stats.total_nri_users}</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <p className="text-sm font-medium text-gray-500">Total Bookings</p>
-                                                <p className="text-3xl font-bold text-primary mt-2">{stats.total_bookings}</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <p className="text-sm font-medium text-gray-500">Total Companions</p>
-                                                <p className="text-3xl font-bold text-primary mt-2">{stats.total_companions}</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card className="bg-yellow-50 border-yellow-100">
-                                            <CardContent className="p-6">
-                                                <p className="text-sm font-medium text-yellow-700">Pending Approvals</p>
-                                                <p className="text-3xl font-bold text-yellow-800 mt-2">{stats.pending_companions}</p>
-                                            </CardContent>
-                                        </Card>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div>
+                                                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Overview</h2>
+                                                <p className="text-gray-500 mt-1">Platform performance metrics</p>
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <div className="px-4 py-2 bg-white rounded-full border border-gray-200 text-sm font-medium text-gray-600 shadow-sm flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                    Live Data
+                                                </div>
+                                            </div>
+                                        </div>
 
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            {/* 1. REVENUE (2x1) - The Anchor */}
+                                            <div className="col-span-1 lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+                                                <div className="relative z-10 flex flex-col h-full justify-between">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="p-3 bg-emerald-50 rounded-2xl">
+                                                            <Wallet className="w-6 h-6 text-emerald-600" />
+                                                        </div>
+                                                        <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-sm font-medium">
+                                                            +12.5%
+                                                        </span>
+                                                    </div>
+                                                    <div className="mt-8">
+                                                        <p className="text-gray-500 font-medium mb-2">Total Revenue</p>
+                                                        <h3 className="text-6xl font-bold text-gray-900 tracking-tighter">
+                                                            ₹{revenueStats?.total_revenue?.toLocaleString('en-IN') || 0}
+                                                        </h3>
+                                                    </div>
+                                                </div>
+                                                {/* Decorative background element */}
+                                                <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-10 translate-y-10 group-hover:scale-110 transition-transform duration-500">
+                                                    <Wallet className="w-64 h-64 text-gray-900" />
+                                                </div>
+                                            </div>
+
+                                            {/* 2. TOTAL USERS (1x1) - Minimalist */}
+                                            <div className="col-span-1 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+                                                <div className="flex flex-col h-full justify-between">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="p-3 bg-gray-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                                            <Users className="w-6 h-6 text-gray-700" />
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full border border-gray-100">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                            <span className="text-xs font-medium text-gray-600">Active</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4">
+                                                        <h3 className="text-5xl font-bold mb-2 tracking-tight text-gray-900">{stats?.total_nri_users || 0}</h3>
+                                                        <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Users</p>
+                                                    </div>
+
+                                                    {/* Mini Status Dots */}
+                                                    <div className="flex gap-1 mt-4">
+                                                        {[...Array(6)].map((_, i) => (
+                                                            <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 4 ? 'bg-gray-200' : 'bg-gray-100'}`}></div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* 3. TOTAL BOOKINGS (1x1) - Minimalist */}
+                                            <div className="col-span-1 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
+                                                {/* Subtle Pattern (Fixed Syntax) */}
+                                                <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#000000_1px,transparent_1px)] bg-size-[16px_16px]"></div>
+
+                                                <div className="flex flex-col h-full justify-between relative z-10">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="p-3 bg-emerald-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                                            <Calendar className="w-6 h-6 text-emerald-600" />
+                                                        </div>
+                                                        <div className="px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+                                                            <span className="text-xs font-bold text-emerald-700">+3 Today</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4">
+                                                        <h3 className="text-5xl font-bold mb-2 tracking-tight text-gray-900">{stats?.total_bookings || 0}</h3>
+                                                        <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Bookings</p>
+                                                    </div>
+
+                                                    {/* Progress Line */}
+                                                    <div className="mt-4 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                                        <div className="bg-emerald-500 h-full rounded-full w-[70%] shadow-sm"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* 4. BOOKING STATUS (2x1) */}
+                                            <div className="col-span-1 lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <div className="p-2 bg-gray-50 rounded-xl">
+                                                        <Activity className="w-5 h-5 text-gray-600" />
+                                                    </div>
+                                                    <h3 className="font-bold text-gray-900">Booking Status</h3>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="p-4 bg-amber-50 rounded-3xl border border-amber-100">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-amber-700 font-medium">Pending</span>
+                                                            <Clock className="w-4 h-4 text-amber-500" />
+                                                        </div>
+                                                        <p className="text-3xl font-bold text-gray-900">{bookingStats?.status_counts?.pending || 0}</p>
+                                                    </div>
+                                                    <div className="p-4 bg-emerald-50 rounded-3xl border border-emerald-100">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-emerald-700 font-medium">Active</span>
+                                                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                        </div>
+                                                        <div className="flex items-baseline gap-1">
+                                                            <p className="text-3xl font-bold text-gray-900">{bookingStats?.status_counts?.assigned || 0}</p>
+                                                            <span className="text-sm text-gray-500">/ {(bookingStats?.status_counts?.assigned || 0) + (bookingStats?.status_counts?.pending || 0)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* 5. NETWORK HEALTH (1x1) */}
+                                            <div className="col-span-1 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                                                <div className="flex items-center justify-between mb-8">
+                                                    <h3 className="font-bold text-gray-900">Network</h3>
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-gray-500">Active Companions</span>
+                                                        <span className="font-bold text-gray-900">{companionStats?.approved || 0}</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-100 rounded-full h-2">
+                                                        <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                                                    </div>
+                                                    <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                                                        <span className="text-gray-500">Pending</span>
+                                                        <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">
+                                                            {companionStats?.pending || 0}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* 6. ACTION ITEMS (1x1) */}
+                                            <div className="col-span-1 bg-white rounded-[2.5rem] p-8 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                                                <div className="flex items-center justify-between mb-8">
+                                                    <h3 className="font-bold text-gray-900">Attention</h3>
+                                                    <AlertCircle className="w-5 h-5 text-red-500" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div className="flex justify-between items-center p-3 bg-red-50 rounded-2xl">
+                                                        <span className="text-red-700 font-medium text-sm">Open Complaints</span>
+                                                        <span className="font-bold text-red-700">{complaintStats?.status_counts?.open || 0}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-2xl">
+                                                        <span className="text-amber-700 font-medium text-sm">Failed Payments</span>
+                                                        <span className="font-bold text-amber-700">{revenueStats?.failed_payments || 0}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
@@ -1024,6 +1185,7 @@ const AdminDashboard = () => {
                                                             ))}
                                                         </tbody>
                                                     </table>
+                                                    <PaginationControls />
                                                 </div>
                                             )}
                                         </CardContent>

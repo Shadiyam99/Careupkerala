@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 
 
 class ComplaintCreate(BaseModel):
@@ -30,6 +30,12 @@ class ComplaintResponse(BaseModel):
         from_attributes = True
 
 
+
 class ComplaintAdminUpdate(BaseModel):
     status: str
     admin_response: Optional[str] = None
+
+
+class ComplaintListResponse(BaseModel):
+    items: List[ComplaintResponse]
+    total: int

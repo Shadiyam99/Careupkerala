@@ -18,7 +18,7 @@ export const companionsApi = {
     },
 
     getPublicCompanions: async () => {
-        const response = await axios.get('/companions/availability');
+        const response = await axios.get('/companions/public');
         return response.data;
     },
 

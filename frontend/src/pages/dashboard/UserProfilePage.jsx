@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User, Phone, MessageSquare, Star } from 'lucide-react';
+import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User, Phone, MessageSquare, Star, Mail } from 'lucide-react';
 import NotificationBell from '../../components/notifications/NotificationBell';
 
 const UserProfilePage = () => {
@@ -49,22 +49,49 @@ const UserProfilePage = () => {
         country: '',
     });
 
+    const [pagination, setPagination] = useState({
+        bookings: { page: 1, limit: 5, total: 0 },
+        complaints: { page: 1, limit: 5, total: 0 }
+    });
+
     useEffect(() => {
         loadProfile();
-        loadBookings();
-        loadServices();
-        loadBookings();
         loadServices();
         loadPayments();
-        loadComplaints();
     }, []);
 
-    const loadComplaints = async () => {
+    useEffect(() => {
+        if (activeTab === 'bookings') {
+            loadBookings(pagination.bookings.page);
+        }
+        if (activeTab === 'complaints') {
+            loadComplaints(pagination.complaints.page);
+        }
+    }, [activeTab, pagination.bookings.page, pagination.complaints.page]);
+
+    const loadComplaints = async (page = 1) => {
         try {
-            const data = await complaintsApi.getMyComplaints();
-            setComplaints(data || []);
+            const data = await complaintsApi.getMyComplaints(page, pagination.complaints.limit);
+            setComplaints(data.items || []);
+            setPagination(prev => ({
+                ...prev,
+                complaints: { ...prev.complaints, page, total: data.total }
+            }));
         } catch (err) {
             console.error("Failed to load complaints", err);
+        }
+    };
+
+    const loadBookings = async (page = 1) => {
+        try {
+            const data = await bookingsApi.getMyBookings(page, pagination.bookings.limit);
+            setMyBookings(data.items || []);
+            setPagination(prev => ({
+                ...prev,
+                bookings: { ...prev.bookings, page, total: data.total }
+            }));
+        } catch (err) {
+            console.error("Failed to load bookings", err);
         }
     };
 
@@ -86,14 +113,48 @@ const UserProfilePage = () => {
         }
     };
 
-    const loadBookings = async () => {
-        try {
-            const data = await bookingsApi.getMyBookings();
-            setMyBookings(data || []);
-        } catch (err) {
-            console.error("Failed to load bookings", err);
-        }
+    const handlePageChange = (type, newPage) => {
+        setPagination(prev => ({
+            ...prev,
+            [type]: { ...prev[type], page: newPage }
+        }));
     };
+
+    const renderPagination = (type) => {
+        const { page, limit, total } = pagination[type];
+        const totalPages = Math.ceil(total / limit);
+
+        if (totalPages <= 1) return null;
+
+        return (
+            <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
+                <div className="text-sm text-gray-500">
+                    Showing {Math.min((page - 1) * limit + 1, total)} to {Math.min(page * limit, total)} of {total} results
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page === 1}
+                        onClick={() => handlePageChange(type, page - 1)}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page === totalPages}
+                        onClick={() => handlePageChange(type, page + 1)}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+        );
+    };
+
+
+
 
     const loadServices = async () => {
         try {
@@ -216,123 +277,116 @@ const UserProfilePage = () => {
 
                 {/* Error handled by toast */}
 
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
-                        <Button
-                            variant="outline"
-                            onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
-                            className="bg-white hover:bg-gray-50"
-                        >
-                            {isEditing ? 'Cancel Edit' : 'Edit Information'}
-                        </Button>
-                    </div>
+                {activeTab === 'profile' && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-800">My Profile</h2>
+                            <Button
+                                variant="outline"
+                                onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
+                                className="bg-white hover:bg-gray-50"
+                            >
+                                {isEditing ? 'Cancel Edit' : 'Edit Information'}
+                            </Button>
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Full Name */}
-                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
-                            <CardContent className="p-6 flex items-start space-x-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
-                                    <User className="w-6 h-6" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Full Name */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                                    <User size={24} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-500 mb-1">Full Name</p>
+                                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Full Name</p>
                                     {isEditing ? (
                                         <Input
                                             name="full_name"
                                             value={formData.full_name}
                                             onChange={handleInputChange}
-                                            className="font-bold text-gray-900 border-blue-200 focus:border-blue-500"
+                                            className="font-bold text-gray-900 border-blue-200 focus:border-blue-500 h-9"
                                         />
                                     ) : (
-                                        <h4 className="text-xl font-bold text-gray-900">{profile?.full_name}</h4>
+                                        <h3 className="text-gray-900 font-bold text-lg">{profile?.full_name}</h3>
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        {/* Email */}
-                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
-                            <CardContent className="p-6 flex items-start space-x-4">
-                                <div className="p-3 bg-orange-50 text-orange-600 rounded-xl group-hover:scale-110 transition-transform">
-                                    <Mail className="w-6 h-6" />
+                            {/* Email Address */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                                <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
+                                    <Mail size={24} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
-                                    <h4 className="text-lg font-bold text-gray-900 truncate" title={profile?.email}>{profile?.email}</h4>
-                                    <span className="text-xs text-orange-400 font-medium">Verified</span>
+                                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Email Address</p>
+                                    <h3 className="text-gray-900 font-bold text-lg truncate" title={profile?.email}>{profile?.email}</h3>
+                                    <span className="text-orange-500 text-[10px] font-bold uppercase tracking-wider mt-1 inline-block">Verified</span>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        {/* Phone */}
-                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
-                            <CardContent className="p-6 flex items-start space-x-4">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:scale-110 transition-transform">
-                                    <Phone className="w-6 h-6" />
+                            {/* Phone Number */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                                    <Phone size={24} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-500 mb-1">Phone Number</p>
+                                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Phone Number</p>
                                     {isEditing ? (
                                         <Input
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            className="font-bold text-gray-900 border-purple-200 focus:border-purple-500"
+                                            className="font-bold text-gray-900 border-purple-200 focus:border-purple-500 h-9"
                                         />
                                     ) : (
-                                        <h4 className="text-xl font-bold text-gray-900">{profile?.phone}</h4>
+                                        <h3 className="text-gray-900 font-bold text-lg">{profile?.phone}</h3>
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        {/* Country */}
-                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
-                            <CardContent className="p-6 flex items-start space-x-4">
-                                <div className="p-3 bg-teal-50 text-teal-600 rounded-xl group-hover:scale-110 transition-transform">
-                                    <MapPin className="w-6 h-6" />
+                            {/* Country */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                                <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
+                                    <MapPin size={24} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-500 mb-1">Country</p>
+                                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Country</p>
                                     {isEditing ? (
                                         <Input
                                             name="country"
                                             value={formData.country}
                                             onChange={handleInputChange}
-                                            className="font-bold text-gray-900 border-teal-200 focus:border-teal-500"
+                                            className="font-bold text-gray-900 border-teal-200 focus:border-teal-500 h-9"
                                         />
                                     ) : (
-                                        <h4 className="text-xl font-bold text-gray-900">{profile?.country || 'Not Set'}</h4>
+                                        <h3 className="text-gray-900 font-bold text-lg">{profile?.country || 'Not Set'}</h3>
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        {/* Role */}
-                        <Card className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white rounded-2xl overflow-hidden group">
-                            <CardContent className="p-6 flex items-start space-x-4">
-                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
-                                    <User className="w-6 h-6" />
+                            {/* Account Role */}
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
+                                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                                    <User size={24} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-500 mb-1">Account Role</p>
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-rose-100 text-rose-800 capitalize">
+                                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Account Role</p>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 uppercase tracking-wide">
                                         {profile?.role}
                                     </span>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {isEditing && (
-                        <div className="flex justify-end pt-4">
-                            <Button onClick={handleSave} isLoading={loading} className="px-8 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all">
-                                Save Changes
-                            </Button>
+                            </div>
                         </div>
-                    )}
-                </div>
+
+                        {isEditing && (
+                            <div className="flex justify-end pt-4">
+                                <Button onClick={handleSave} isLoading={loading} className="px-8 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all">
+                                    Save Changes
+                                </Button>
+                            </div>
+                        )}
+
+                    </div>
+                )}
 
                 {/* My Bookings Tab */}
                 {activeTab === 'bookings' && (
@@ -485,6 +539,7 @@ const UserProfilePage = () => {
                                 ))}
                             </div>
                         )}
+                        {renderPagination('bookings')}
                     </div>
                 )}
 
@@ -574,6 +629,7 @@ const UserProfilePage = () => {
                                 })}
                             </div>
                         )}
+                        {renderPagination('complaints')}
                     </div>
                 )}
 

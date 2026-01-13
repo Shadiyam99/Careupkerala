@@ -8,14 +8,18 @@ export const complaintsApi = {
     },
 
     // Get my complaints (User)
-    getMyComplaints: async () => {
-        const response = await axios.get('/complaints/me');
+    getMyComplaints: async (page = 1, limit = 10) => {
+        const response = await axios.get('/complaints/me', {
+            params: { page, limit }
+        });
         return response.data;
     },
 
     // Get all complaints (Admin)
-    getAll: async () => {
-        const response = await axios.get('/complaints');
+    getAll: async (page = 1, limit = 10) => {
+        const response = await axios.get('/complaints', {
+            params: { page, limit }
+        });
         return response.data;
     },
 

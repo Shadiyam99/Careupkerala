@@ -93,19 +93,24 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
     )
 
 
-def get_my_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
+
+def get_my_bookings(db: Session, current_user: dict, page: int = 1, limit: int = 10):
     """Get own bookings. NRI (created) or Companion (assigned)."""
     if current_user["role"] not in ["nri", "companion"]:
         raise ValueError("User role not authorized to view bookings")
     
     user_uuid = UUID(current_user["user_id"])
+    query = db.query(Booking)
     
     if current_user["role"] == "nri":
-        bookings = db.query(Booking).filter(Booking.nri_id == user_uuid).all()
+        query = query.filter(Booking.nri_id == user_uuid)
     else: # companion
-        bookings = db.query(Booking).filter(Booking.companion_id == user_uuid).all()
+        query = query.filter(Booking.companion_id == user_uuid)
     
-    return [
+    total = query.count()
+    bookings = query.order_by(Booking.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+    
+    items = [
         BookingResponse(
             id=b.id,
             nri_id=b.nri_id,
@@ -131,16 +136,19 @@ def get_my_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
         )
         for b in bookings
     ]
+    return items, total
 
 
-def get_all_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
+def get_all_bookings(db: Session, current_user: dict, page: int = 1, limit: int = 10):
     """Get all bookings. Admin only."""
     if current_user["role"] != "admin":
         raise ValueError("Only admins can view all bookings")
     
-    bookings = db.query(Booking).all()
+    query = db.query(Booking)
+    total = query.count()
+    bookings = query.order_by(Booking.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
     
-    return [
+    items = [
         BookingResponse(
             id=b.id,
             nri_id=b.nri_id,
@@ -166,6 +174,7 @@ def get_all_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
         )
         for b in bookings
     ]
+    return items, total
 
 
 def update_booking_status(db: Session, booking_id: str, data: BookingStatusUpdate, current_user: dict) -> BookingResponse:

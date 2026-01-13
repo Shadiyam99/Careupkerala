@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
@@ -47,5 +47,11 @@ class BookingStatusUpdate(BaseModel):
     status: str
 
 
+
 class BookingAssignCompanion(BaseModel):
     companion_id: UUID
+
+
+class BookingListResponse(BaseModel):
+    items: List[BookingResponse]
+    total: int

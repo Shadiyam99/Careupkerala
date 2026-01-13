@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from middleware.db import get_db
 from middleware.auth_utils import get_current_user
-from apps.complaints.schemas import ComplaintCreate, ComplaintResponse, ComplaintAdminUpdate
+from apps.complaints.schemas import ComplaintCreate, ComplaintResponse, ComplaintAdminUpdate, ComplaintListResponse
 from apps.complaints.services import create_complaint, get_my_complaints, get_all_complaints, update_complaint
 from uuid import UUID
 from typing import List
@@ -25,26 +25,30 @@ def create_new_complaint(
         raise HTTPException(status_code=403, detail=str(e))
 
 
-@router.get("/me", response_model=List[ComplaintResponse])
+@router.get("/me", response_model=ComplaintListResponse)
 def get_my_complaints_list(
+    page: int = 1,
+    limit: int = 10,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        complaints = get_my_complaints(db, current_user)
-        return complaints
+        items, total = get_my_complaints(db, current_user, page, limit)
+        return {"items": items, "total": total}
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
 
 
-@router.get("", response_model=List[ComplaintResponse])
+@router.get("", response_model=ComplaintListResponse)
 def get_all_complaints_list(
+    page: int = 1,
+    limit: int = 10,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        complaints = get_all_complaints(db, current_user)
-        return complaints
+        items, total = get_all_complaints(db, current_user, page, limit)
+        return {"items": items, "total": total}
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
 

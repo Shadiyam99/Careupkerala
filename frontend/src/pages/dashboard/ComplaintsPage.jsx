@@ -14,16 +14,20 @@ const ComplaintsPage = () => {
     const [replyingTo, setReplyingTo] = useState(null); // id of complaint being replied to
     const [replyText, setReplyText] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     useEffect(() => {
         loadComplaints();
-    }, []);
+    }, [page]);
 
     const loadComplaints = async () => {
         try {
             setLoading(true);
-            const data = await complaintsApi.getAll();
-            setComplaints(data || []);
+            const data = await complaintsApi.getAll(page, ITEMS_PER_PAGE);
+            setComplaints(data.items || []);
+            setTotalPages(Math.ceil((data.total || 0) / ITEMS_PER_PAGE));
         } catch (err) {
             console.error(err);
             toastError("Failed to load complaints");
@@ -225,6 +229,27 @@ const ComplaintsPage = () => {
                     ))
                 )}
             </div>
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-6">
+                    <Button
+                        variant="outline"
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                    >
+                        Previous
+                    </Button>
+                    <span className="text-gray-600 font-medium">
+                        Page {page} of {totalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
         </div >
     );
 };

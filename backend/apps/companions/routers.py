@@ -10,11 +10,22 @@ from apps.companions.services import (
     get_my_companion_profile,
     update_my_companion_profile,
     update_my_availability,
-    get_companions_availability
+    get_companions_availability,
+    get_public_companions
 )
 from typing import List
 
 router = APIRouter(prefix="/companions", tags=["companions"])
+
+
+@router.get("/public", response_model=List[CompanionAvailabilityResponse])
+def get_public_companions_route(
+    db: Session = Depends(get_db)
+):
+    try:
+        return get_public_companions(db)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.get("/pending", response_model=CompanionListResponse)
