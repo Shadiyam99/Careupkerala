@@ -277,6 +277,19 @@ const AdminDashboard = () => {
         }, 'Delete Service', 'Are you sure you want to delete this service?');
     };
 
+    const handleDeleteCareFeed = (id) => {
+        confirmDelete(() => async () => {
+            try {
+                await careFeedApi.delete(id);
+                success('Care feed entry deleted successfully');
+                loadData(page);
+            } catch (err) {
+                console.error(err);
+                toastError('Failed to delete care feed entry');
+            }
+        }, 'Delete Care Feed', 'Are you sure you want to delete this update?');
+    };
+
     const handleOpenPricing = (service) => {
         setCurrentServicePricing(service);
         // Check if service already has pricing (assuming single active pricing or taking the first one for now)
@@ -888,7 +901,15 @@ const AdminDashboard = () => {
                                                                         {feed.companion_name || feed.companion_id}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                                        {/* Add actions here if needed */}
+                                                                        <Button
+                                                                            onClick={() => handleDeleteCareFeed(feed.id)}
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="text-red-600 hover:text-red-900 hover:bg-red-50"
+                                                                        >
+                                                                            <LogOut className="w-4 h-4 mr-1" />
+                                                                            Delete
+                                                                        </Button>
                                                                     </td>
                                                                 </tr>
                                                             ))}
