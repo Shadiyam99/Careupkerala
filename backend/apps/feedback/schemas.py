@@ -16,6 +16,11 @@ class FeedbackResponse(BaseModel):
     rating: int
     comment: Optional[str]
     created_at: datetime
+    
+    # Enhanced Details
+    service_name: Optional[str] = None
+    companion_name: Optional[str] = None
+    nri_name: Optional[str] = None
 
     class Config:
         from_attributes = True

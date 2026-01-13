@@ -6,6 +6,7 @@ import { paymentsApi } from '../../api/payments';
 import { complaintsApi } from '../../api/complaints';
 import { BookingModal } from '../../components/bookings/BookingModal';
 import { ComplaintModal } from '../../components/complaints/ComplaintModal';
+import { FeedbackModal } from '../../components/feedback/FeedbackModal';
 import { PaymentModal } from '../../components/payments/PaymentModal';
 import { CareFeedModal } from '../../components/care-feed/CareFeedModal';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
@@ -32,9 +33,11 @@ const UserProfilePage = () => {
     const [selectedService, setSelectedService] = useState(null);
     const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
     const [selectedBookingForComplaint, setSelectedBookingForComplaint] = useState(null);
+    const [selectedBookingForFeedback, setSelectedBookingForFeedback] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
     // Care Feed State
     const [selectedBookingForFeed, setSelectedBookingForFeed] = useState(null);
@@ -128,6 +131,11 @@ const UserProfilePage = () => {
     const handleOpenFeed = (booking) => {
         setSelectedBookingForFeed(booking);
         setIsFeedModalOpen(true);
+    };
+
+    const handleOpenFeedback = (booking) => {
+        setSelectedBookingForFeedback(booking);
+        setIsFeedbackModalOpen(true);
     };
 
     const handleInputChange = (e) => {
@@ -419,6 +427,16 @@ const UserProfilePage = () => {
                                                                 <div className="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-medium">
                                                                     <CheckCircle className="w-4 h-4 mr-1.5" />
                                                                     Payment Complete
+                                                                    {booking.status === 'completed' && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => handleOpenFeedback(booking)}
+                                                                            className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                                                                        >
+                                                                            Leave Review
+                                                                        </Button>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         } else {
@@ -556,6 +574,12 @@ const UserProfilePage = () => {
                         loadComplaints(); // Refresh list
                     }}
                     booking={selectedBookingForComplaint}
+                />
+
+                <FeedbackModal
+                    isOpen={isFeedbackModalOpen}
+                    onClose={() => setIsFeedbackModalOpen(false)}
+                    booking={selectedBookingForFeedback}
                 />
 
                 <PaymentModal

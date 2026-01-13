@@ -30,10 +30,12 @@ import {
     Wallet,
     MessageSquare,
     BellRing,
-    AlertCircle
+    AlertCircle,
+    Star
 } from 'lucide-react';
 import { notificationsApi } from '../../api/notifications';
 import ComplaintsPage from './ComplaintsPage';
+import FeedbackPage from './FeedbackPage';
 
 const AdminDashboard = () => {
     const { logout } = useAuth();
@@ -391,6 +393,7 @@ const AdminDashboard = () => {
         { id: 'bookings', label: 'Bookings', icon: Calendar },
         { id: 'payments', label: 'Payments', icon: Wallet },
         { id: 'complaints', label: 'Complaints', icon: AlertCircle },
+        { id: 'reviews', label: 'Reviews', icon: Star },
         { id: 'care-feed', label: 'Care Feed', icon: MessageSquare },
         { id: 'logs', label: 'Activity Logs', icon: Activity },
     ];
@@ -560,6 +563,11 @@ const AdminDashboard = () => {
                                 {/* Complaints Tab */}
                                 {activeTab === 'complaints' && (
                                     <ComplaintsPage />
+                                )}
+
+                                {/* Reviews Tab */}
+                                {activeTab === 'reviews' && (
+                                    <FeedbackPage />
                                 )}
 
                                 {/* Companions Tab */}
