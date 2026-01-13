@@ -17,6 +17,11 @@ export function BookingModal({ isOpen, onClose, service }) {
     const [formData, setFormData] = useState({
         hospital_id: '',
         scheduled_date: '',
+        patient_name: '',
+        patient_age: '',
+        patient_gender: 'Male',
+        patient_phone: '',
+        patient_notes: ''
     });
 
     useEffect(() => {
@@ -25,7 +30,12 @@ export function BookingModal({ isOpen, onClose, service }) {
             // Reset form
             setFormData({
                 hospital_id: '',
-                scheduled_date: ''
+                scheduled_date: '',
+                patient_name: '',
+                patient_age: '',
+                patient_gender: 'Male',
+                patient_phone: '',
+                patient_notes: ''
             });
         }
     }, [isOpen]);
@@ -61,7 +71,12 @@ export function BookingModal({ isOpen, onClose, service }) {
                 service_id: service.id,
                 pricing_id: service.pricing[0].id, // Assuming single pricing for now
                 hospital_id: formData.hospital_id,
-                scheduled_date: new Date(formData.scheduled_date).toISOString()
+                scheduled_date: new Date(formData.scheduled_date).toISOString(),
+                patient_name: formData.patient_name,
+                patient_age: formData.patient_age,
+                patient_gender: formData.patient_gender,
+                patient_phone: formData.patient_phone,
+                patient_notes: formData.patient_notes
             };
 
             await bookingsApi.create(payload);
@@ -113,6 +128,83 @@ export function BookingModal({ isOpen, onClose, service }) {
                             </option>
                         ))}
                     </select>
+                </div>
+
+                {/* Patient Details Section */}
+                <div className="space-y-4 pt-2 border-t border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-900">Patient Details</h4>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Patient Name
+                            </label>
+                            <Input
+                                required
+                                type="text"
+                                placeholder="Full Name"
+                                value={formData.patient_name}
+                                onChange={(e) => setFormData({ ...formData, patient_name: e.target.value })}
+                                className="w-full"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Age
+                            </label>
+                            <Input
+                                required
+                                type="number"
+                                placeholder="Age"
+                                value={formData.patient_age}
+                                onChange={(e) => setFormData({ ...formData, patient_age: e.target.value })}
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Contact Number (For Companion)
+                        </label>
+                        <Input
+                            required
+                            type="tel"
+                            placeholder="Patient/Caretaker Phone Number"
+                            value={formData.patient_phone}
+                            onChange={(e) => setFormData({ ...formData, patient_phone: e.target.value })}
+                            className="w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Gender
+                        </label>
+                        <select
+                            required
+                            value={formData.patient_gender}
+                            onChange={(e) => setFormData({ ...formData, patient_gender: e.target.value })}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                        >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Condition / Notes
+                        </label>
+                        <textarea
+                            rows={3}
+                            placeholder="Describe current condition or specific needs..."
+                            value={formData.patient_notes}
+                            onChange={(e) => setFormData({ ...formData, patient_notes: e.target.value })}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                        />
+                    </div>
                 </div>
 
                 <div>

@@ -335,13 +335,43 @@ const CompanionDashboard = () => {
                                                         </div>
                                                         <div className="flex items-center">
                                                             <User className="w-4 h-4 mr-2 text-indigo-500" />
-                                                            <span className="font-medium mr-2">Client:</span>
+                                                            <span className="font-medium mr-2">Booked By:</span>
                                                             {booking.nri_name || 'N/A'}
                                                         </div>
                                                         <div className="flex items-center">
                                                             <span className="font-medium mr-2 text-gray-400">ID:</span>
                                                             <span className="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">{booking.id.slice(0, 8)}</span>
                                                         </div>
+
+                                                        {/* Patient Details */}
+                                                        {booking.patient_name && (
+                                                            <>
+                                                                <div className="flex items-center col-span-1 sm:col-span-2 pt-2 border-t border-gray-200 mt-1">
+                                                                    <Activity className="w-4 h-4 mr-2 text-emerald-600" />
+                                                                    <span className="font-medium mr-2 text-gray-900">Patient:</span>
+                                                                    <span className="text-gray-900 font-semibold">
+                                                                        {booking.patient_name}
+                                                                        <span className="text-gray-500 font-normal ml-1">
+                                                                            ({booking.patient_age}, {booking.patient_gender})
+                                                                        </span>
+                                                                    </span>
+                                                                    {booking.patient_phone && (
+                                                                        <div className="flex items-center ml-4 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium">
+                                                                            <Phone className="w-3 h-3 mr-1" />
+                                                                            <a href={`tel:${booking.patient_phone}`} className="hover:underline">
+                                                                                {booking.patient_phone}
+                                                                            </a>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                {booking.patient_notes && (
+                                                                    <div className="col-span-1 sm:col-span-2 text-xs bg-amber-50 text-amber-900 p-3 rounded border border-amber-100">
+                                                                        <span className="font-bold block mb-1">Condition / Notes:</span>
+                                                                        {booking.patient_notes}
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

@@ -17,6 +17,14 @@ class Booking(Base):
     companion_id = Column(UUID(as_uuid=True), ForeignKey("companions.id"), nullable=True)
     status = Column(String, default="pending", nullable=False)
     scheduled_date = Column(DateTime, nullable=False)
+    
+    # Patient Details
+    patient_name = Column(String, nullable=True) # Making nullable=True initially to avoid migration issues with existing data, or default=""
+    patient_age = Column(String, nullable=True)
+    patient_gender = Column(String, nullable=True)
+    patient_phone = Column(String, nullable=True)
+    patient_notes = Column(String, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     
     nri = relationship("NRIUser")

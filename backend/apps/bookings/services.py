@@ -39,7 +39,12 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
         service_id=data.service_id,
         pricing_id=data.pricing_id,
         status="pending",
-        scheduled_date=data.scheduled_date
+        scheduled_date=data.scheduled_date,
+        patient_name=data.patient_name,
+        patient_age=data.patient_age,
+        patient_gender=data.patient_gender,
+        patient_phone=data.patient_phone,
+        patient_notes=data.patient_notes
     )
     db.add(booking)
     db.commit()
@@ -48,9 +53,6 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
     # Notify Admin
     try:
         # Get admin user (assuming there's an admin)
-        # For now, we'll fetch all admins or just notify a specific admin if we had ID.
-        # But wait, create_notification takes a user_id. 
-        # We need to find the admin ID. Let's look up the first admin for now.
         from auth.models import Admin
         admin = db.query(Admin).first()
         if admin:
@@ -59,7 +61,7 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
                 user_id=str(admin.id),
                 role="admin",
                 title="New Booking Received",
-                message=f"New booking received from {current_user.get('sub', 'User')} for {hospital.name if hospital else 'Hospital'}", # sub usually has email/name
+                message=f"New booking received from {current_user.get('sub', 'User')} for {hospital.name if hospital else 'Hospital'}",
                 related_entity="booking",
                 related_entity_id=booking.id
             )
@@ -80,8 +82,14 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
         service_name=booking.service.name if booking.service else None,
         nri_name=booking.nri.full_name if booking.nri else None,
         companion_name=booking.companion.full_name if booking.companion else None,
+        companion_phone=booking.companion.phone if booking.companion else None,
         price=float(booking.pricing.price) if booking.pricing else None,
-        currency=booking.pricing.currency if booking.pricing else None
+        currency=booking.pricing.currency if booking.pricing else None,
+        patient_name=booking.patient_name,
+        patient_age=booking.patient_age,
+        patient_gender=booking.patient_gender,
+        patient_phone=booking.patient_phone,
+        patient_notes=booking.patient_notes
     )
 
 
@@ -112,8 +120,14 @@ def get_my_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
             service_name=b.service.name if b.service else None,
             nri_name=b.nri.full_name if b.nri else None,
             companion_name=b.companion.full_name if b.companion else None,
+            companion_phone=b.companion.phone if b.companion else None,
             price=float(b.pricing.price) if b.pricing else None,
-            currency=b.pricing.currency if b.pricing else None
+            currency=b.pricing.currency if b.pricing else None,
+            patient_name=b.patient_name,
+            patient_age=b.patient_age,
+            patient_gender=b.patient_gender,
+            patient_phone=b.patient_phone,
+            patient_notes=b.patient_notes
         )
         for b in bookings
     ]
@@ -141,8 +155,14 @@ def get_all_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
             service_name=b.service.name if b.service else None,
             nri_name=b.nri.full_name if b.nri else None,
             companion_name=b.companion.full_name if b.companion else None,
+            companion_phone=b.companion.phone if b.companion else None,
             price=float(b.pricing.price) if b.pricing else None,
-            currency=b.pricing.currency if b.pricing else None
+            currency=b.pricing.currency if b.pricing else None,
+            patient_name=b.patient_name,
+            patient_age=b.patient_age,
+            patient_gender=b.patient_gender,
+            patient_phone=b.patient_phone,
+            patient_notes=b.patient_notes
         )
         for b in bookings
     ]
@@ -199,8 +219,14 @@ def update_booking_status(db: Session, booking_id: str, data: BookingStatusUpdat
         service_name=booking.service.name if booking.service else None,
         nri_name=booking.nri.full_name if booking.nri else None,
         companion_name=booking.companion.full_name if booking.companion else None,
+        companion_phone=booking.companion.phone if booking.companion else None,
         price=float(booking.pricing.price) if booking.pricing else None,
-        currency=booking.pricing.currency if booking.pricing else None
+        currency=booking.pricing.currency if booking.pricing else None,
+        patient_name=booking.patient_name,
+        patient_age=booking.patient_age,
+        patient_gender=booking.patient_gender,
+        patient_phone=booking.patient_phone,
+        patient_notes=booking.patient_notes
     )
 
 
@@ -268,6 +294,12 @@ def assign_companion(db: Session, booking_id: str, data: BookingAssignCompanion,
         service_name=booking.service.name if booking.service else None,
         nri_name=booking.nri.full_name if booking.nri else None,
         companion_name=booking.companion.full_name if booking.companion else None,
+        companion_phone=booking.companion.phone if booking.companion else None,
         price=float(booking.pricing.price) if booking.pricing else None,
-        currency=booking.pricing.currency if booking.pricing else None
+        currency=booking.pricing.currency if booking.pricing else None,
+        patient_name=booking.patient_name,
+        patient_age=booking.patient_age,
+        patient_gender=booking.patient_gender,
+        patient_phone=booking.patient_phone,
+        patient_notes=booking.patient_notes
     )

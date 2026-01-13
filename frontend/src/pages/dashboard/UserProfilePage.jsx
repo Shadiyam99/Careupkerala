@@ -11,7 +11,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User } from 'lucide-react';
+import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User, Phone } from 'lucide-react';
 import NotificationBell from '../../components/notifications/NotificationBell';
 
 const UserProfilePage = () => {
@@ -283,10 +283,20 @@ const UserProfilePage = () => {
                                                             {booking.status}
                                                         </span>
                                                         {booking.companion_name && (
-                                                            <span className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
-                                                                <User className="w-3 h-3 mr-1" />
-                                                                {booking.companion_name}
-                                                            </span>
+                                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                                                <span className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
+                                                                    <User className="w-3 h-3 mr-1" />
+                                                                    {booking.companion_name}
+                                                                </span>
+                                                                {booking.companion_phone && (
+                                                                    <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                                                                        <Phone className="w-3 h-3 mr-1" />
+                                                                        <a href={`tel:${booking.companion_phone}`} className="hover:underline">
+                                                                            {booking.companion_phone}
+                                                                        </a>
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
                                                     <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">{booking.service_name}</h3>
