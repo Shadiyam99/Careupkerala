@@ -18,6 +18,13 @@ class ComplaintResponse(BaseModel):
     status: str
     admin_response: Optional[str]
     created_at: datetime
+    
+    # Enhanced Details
+    patient_name: Optional[str] = None
+    companion_name: Optional[str] = None
+    service_name: Optional[str] = None
+    nri_name: Optional[str] = None
+    booking_reference_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True

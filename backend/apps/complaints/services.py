@@ -1,11 +1,31 @@
 from sqlalchemy.orm import Session
 from apps.complaints.models import Complaint
 from apps.bookings.models import Booking
-from apps.complaints.schemas import ComplaintCreate, ComplaintAdminUpdate
+from apps.complaints.schemas import ComplaintCreate, ComplaintAdminUpdate, ComplaintResponse
 from uuid import UUID
 from datetime import datetime
 from apps.admin_logs.services import log_admin_action
 from apps.notifications.services import create_notification
+
+
+def map_complaint_response(complaint: Complaint) -> ComplaintResponse:
+    """Helper to map complaint to response schema with details."""
+    booking = complaint.booking
+    
+    return ComplaintResponse(
+        id=complaint.id,
+        booking_id=complaint.booking_id,
+        title=complaint.title,
+        description=complaint.description,
+        status=complaint.status,
+        admin_response=complaint.admin_response,
+        created_at=complaint.created_at,
+        patient_name=booking.patient_name if booking else None,
+        companion_name=booking.companion.full_name if booking and booking.companion else "Not Assigned",
+        service_name=booking.service.name if booking and booking.service else None,
+        nri_name=booking.nri.full_name if booking and booking.nri else None,
+        booking_reference_id=booking.id if booking else None
+    )
 
 
 def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
@@ -50,7 +70,7 @@ def create_complaint(db: Session, data: ComplaintCreate, current_user: dict):
     except Exception as e:
         print(f"Failed to send notification: {e}")
     
-    return complaint
+    return map_complaint_response(complaint)
 
 
 def get_my_complaints(db: Session, current_user: dict):
@@ -64,7 +84,7 @@ def get_my_complaints(db: Session, current_user: dict):
         Complaint.nri_user_id == user_id
     ).order_by(Complaint.created_at.desc()).all()
     
-    return complaints
+    return [map_complaint_response(c) for c in complaints]
 
 
 def get_all_complaints(db: Session, current_user: dict):
@@ -75,7 +95,7 @@ def get_all_complaints(db: Session, current_user: dict):
     
     complaints = db.query(Complaint).order_by(Complaint.created_at.desc()).all()
     
-    return complaints
+    return [map_complaint_response(c) for c in complaints]
 
 
 def update_complaint(db: Session, complaint_id: UUID, data: ComplaintAdminUpdate, current_user: dict):
@@ -109,4 +129,4 @@ def update_complaint(db: Session, complaint_id: UUID, data: ComplaintAdminUpdate
         description=f"Updated complaint status to: {complaint.status}"
     )
     
-    return complaint
+    return map_complaint_response(complaint)

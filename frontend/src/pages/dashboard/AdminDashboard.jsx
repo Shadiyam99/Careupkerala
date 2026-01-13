@@ -29,9 +29,11 @@ import {
     ChevronRight,
     Wallet,
     MessageSquare,
-    BellRing
+    BellRing,
+    AlertCircle
 } from 'lucide-react';
 import { notificationsApi } from '../../api/notifications';
+import ComplaintsPage from './ComplaintsPage';
 
 const AdminDashboard = () => {
     const { logout } = useAuth();
@@ -388,6 +390,7 @@ const AdminDashboard = () => {
         { id: 'services', label: 'Services', icon: Stethoscope },
         { id: 'bookings', label: 'Bookings', icon: Calendar },
         { id: 'payments', label: 'Payments', icon: Wallet },
+        { id: 'complaints', label: 'Complaints', icon: AlertCircle },
         { id: 'care-feed', label: 'Care Feed', icon: MessageSquare },
         { id: 'logs', label: 'Activity Logs', icon: Activity },
     ];
@@ -552,6 +555,11 @@ const AdminDashboard = () => {
                                         </Card>
 
                                     </div>
+                                )}
+
+                                {/* Complaints Tab */}
+                                {activeTab === 'complaints' && (
+                                    <ComplaintsPage />
                                 )}
 
                                 {/* Companions Tab */}

@@ -3,7 +3,9 @@ import { usersApi } from '../../api/users';
 import { bookingsApi } from '../../api/bookings';
 import { servicesApi } from '../../api/services';
 import { paymentsApi } from '../../api/payments';
+import { complaintsApi } from '../../api/complaints';
 import { BookingModal } from '../../components/bookings/BookingModal';
+import { ComplaintModal } from '../../components/complaints/ComplaintModal';
 import { PaymentModal } from '../../components/payments/PaymentModal';
 import { CareFeedModal } from '../../components/care-feed/CareFeedModal';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
@@ -26,10 +28,13 @@ const UserProfilePage = () => {
     const [myBookings, setMyBookings] = useState([]);
     const [payments, setPayments] = useState([]);
     const [services, setServices] = useState([]);
+    const [complaints, setComplaints] = useState([]);
     const [selectedService, setSelectedService] = useState(null);
     const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
+    const [selectedBookingForComplaint, setSelectedBookingForComplaint] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
 
     // Care Feed State
     const [selectedBookingForFeed, setSelectedBookingForFeed] = useState(null);
@@ -45,8 +50,20 @@ const UserProfilePage = () => {
         loadProfile();
         loadBookings();
         loadServices();
+        loadBookings();
+        loadServices();
         loadPayments();
+        loadComplaints();
     }, []);
+
+    const loadComplaints = async () => {
+        try {
+            const data = await complaintsApi.getMyComplaints();
+            setComplaints(data || []);
+        } catch (err) {
+            console.error("Failed to load complaints", err);
+        }
+    };
 
     const loadProfile = async () => {
         try {
@@ -101,6 +118,11 @@ const UserProfilePage = () => {
     const handlePayNow = (booking) => {
         setSelectedBookingForPayment(booking);
         setIsPaymentModalOpen(true);
+    };
+
+    const handleOpenComplaint = (booking) => {
+        setSelectedBookingForComplaint(booking);
+        setIsComplaintModalOpen(true);
     };
 
     const handleOpenFeed = (booking) => {
@@ -173,6 +195,14 @@ const UserProfilePage = () => {
                         `}
                     >
                         Book a Service
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('complaints')}
+                        className={`w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all
+                            ${activeTab === 'complaints' ? 'bg-white shadow text-primary' : 'text-gray-600 hover:bg-white/12 hover:text-primary'}
+                        `}
+                    >
+                        Complaints
                     </button>
                 </div>
 
@@ -372,6 +402,15 @@ const UserProfilePage = () => {
                                                     </Button>
                                                 )}
 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleOpenComplaint(booking)}
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                    Report Issue
+                                                </Button>
+
                                                 {(() => {
                                                     const payment = payments.find(p => p.booking_id === booking.id);
                                                     if (payment) {
@@ -442,6 +481,65 @@ const UserProfilePage = () => {
                     </div>
                 )}
 
+                {/* Complaints Tab */}
+                {activeTab === 'complaints' && (
+                    <div className="space-y-6">
+                        <h2 className="text-xl font-semibold text-gray-800 px-1">My Complaints History</h2>
+                        {complaints.length === 0 ? (
+                            <Card>
+                                <CardContent className="p-8 text-center text-gray-500">
+                                    You have no open complaints.
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="space-y-4">
+                                {complaints.map((complaint) => {
+                                    // Find related booking details if available in myBookings
+                                    const relatedBooking = myBookings.find(b => b.id === complaint.booking_id);
+
+                                    return (
+                                        <Card key={complaint.id}>
+                                            <CardContent className="p-6">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide border ${complaint.status === 'open' ? 'bg-red-50 text-red-700 border-red-100' :
+                                                                'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                                                }`}>
+                                                                {complaint.status}
+                                                            </span>
+                                                            <span className="text-xs text-gray-400">
+                                                                {new Date(complaint.created_at).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                        <h3 className="text-lg font-bold text-gray-900">{complaint.title}</h3>
+                                                        {relatedBooking && (
+                                                            <p className="text-sm text-gray-500 mt-1">
+                                                                Regarding: {relatedBooking.service_name} on {new Date(relatedBooking.scheduled_date).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-gray-50 p-4 rounded-lg text-gray-700 text-sm mb-4">
+                                                    {complaint.description}
+                                                </div>
+
+                                                {complaint.admin_response && (
+                                                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                                                        <h4 className="text-xs font-bold text-blue-800 uppercase mb-2">Admin Response</h4>
+                                                        <p className="text-sm text-blue-900">{complaint.admin_response}</p>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <BookingModal
                     isOpen={isBookingModalOpen}
                     onClose={() => {
@@ -449,6 +547,15 @@ const UserProfilePage = () => {
                         loadBookings(); // Refresh bookings after close
                     }}
                     service={selectedService}
+                />
+
+                <ComplaintModal
+                    isOpen={isComplaintModalOpen}
+                    onClose={() => {
+                        setIsComplaintModalOpen(false);
+                        loadComplaints(); // Refresh list
+                    }}
+                    booking={selectedBookingForComplaint}
                 />
 
                 <PaymentModal
