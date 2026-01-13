@@ -5,11 +5,13 @@ import { servicesApi } from '../../api/services';
 import { paymentsApi } from '../../api/payments';
 import { BookingModal } from '../../components/bookings/BookingModal';
 import { PaymentModal } from '../../components/payments/PaymentModal';
+import { CareFeedModal } from '../../components/care-feed/CareFeedModal';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { Calendar, Clock, MapPin, CreditCard, ChevronRight, CheckCircle, AlertCircle, User } from 'lucide-react';
 
 const UserProfilePage = () => {
     const { logout } = useAuth();
@@ -27,6 +29,10 @@ const UserProfilePage = () => {
     const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+    // Care Feed State
+    const [selectedBookingForFeed, setSelectedBookingForFeed] = useState(null);
+    const [isFeedModalOpen, setIsFeedModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -94,6 +100,11 @@ const UserProfilePage = () => {
     const handlePayNow = (booking) => {
         setSelectedBookingForPayment(booking);
         setIsPaymentModalOpen(true);
+    };
+
+    const handleOpenFeed = (booking) => {
+        setSelectedBookingForFeed(booking);
+        setIsFeedModalOpen(true);
     };
 
     const handleInputChange = (e) => {
@@ -244,8 +255,8 @@ const UserProfilePage = () => {
 
                 {/* My Bookings Tab */}
                 {activeTab === 'bookings' && (
-                    <div className="space-y-6">
-                        <h2 className="text-xl font-semibold text-gray-800 px-1">Booking History</h2>
+                    <div className="bg-white rounded-lg shadow-sm min-h-[400px] p-6 space-y-6">
+                        <h2 className="text-xl font-semibold text-gray-800">Booking History</h2>
                         {myBookings.length === 0 ? (
                             <Card>
                                 <CardContent className="p-8 text-center text-gray-500">
@@ -255,61 +266,132 @@ const UserProfilePage = () => {
                         ) : (
                             <div className="grid gap-6">
                                 {myBookings.map((booking) => (
-                                    <Card key={booking.id} className="overflow-hidden">
-                                        <div className="p-6 flex flex-col sm:flex-row justify-between gap-4">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide
-                                                        ${booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                                                booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-yellow-100 text-yellow-800'}`}
-                                                    >
-                                                        {booking.status}
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">
-                                                        {new Date(booking.scheduled_date).toLocaleDateString()} at {new Date(booking.scheduled_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
+                                    <div key={booking.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                                        <div className="p-6">
+                                            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                                                                booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                    'bg-amber-100 text-amber-700'
+                                                            }`}>
+                                                            {booking.status}
+                                                        </span>
+                                                        {booking.companion_name && (
+                                                            <span className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
+                                                                <User className="w-3 h-3 mr-1" />
+                                                                {booking.companion_name}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">{booking.service_name}</h3>
+                                                    <div className="flex items-center text-gray-500 mt-1 text-sm">
+                                                        <MapPin className="w-4 h-4 mr-1 text-gray-400" />
+                                                        {booking.hospital_name}
+                                                    </div>
                                                 </div>
-                                                <h3 className="text-lg font-bold text-gray-900 mb-1">{booking.service_name}</h3>
-                                                <p className="text-gray-600">{booking.hospital_name}</p>
-                                                {booking.companion_name && (
-                                                    <p className="text-sm text-accent mt-2 font-medium">Companion: {booking.companion_name}</p>
-                                                )}
+                                                <div className="flex flex-col items-end justify-center">
+                                                    <div className="text-2xl font-bold text-gray-900">{booking.currency} {booking.price}</div>
+                                                    <div className="text-xs text-gray-400 uppercase tracking-wide font-medium">Total Amount</div>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col items-end justify-between">
-                                                <div className="text-right">
-                                                    <span className="text-2xl font-bold text-gray-900">{booking.currency} {booking.price}</span>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-t border-gray-100 border-b mb-4">
+                                                <div className="flex items-center">
+                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
+                                                        <Calendar className="w-4 h-4 text-zinc-600" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 font-medium uppercase">Date</div>
+                                                        <div className="text-sm font-semibold text-gray-900">
+                                                            {new Date(booking.scheduled_date).toLocaleDateString('en-IN', {
+                                                                timeZone: 'Asia/Kolkata',
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="mt-4">
-                                                    {(() => {
-                                                        const payment = payments.find(p => p.booking_id === booking.id);
-                                                        if (payment) {
+                                                <div className="flex items-center">
+                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
+                                                        <Clock className="w-4 h-4 text-zinc-600" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 font-medium uppercase">Time</div>
+                                                        <div className="text-sm font-semibold text-gray-900">
+                                                            {new Date(booking.scheduled_date).toLocaleTimeString('en-IN', {
+                                                                timeZone: 'Asia/Kolkata',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center mr-3">
+                                                        <CreditCard className="w-4 h-4 text-zinc-600" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 font-medium uppercase">Payment</div>
+                                                        <div className="text-sm font-semibold text-gray-900">
+                                                            {(() => {
+                                                                const payment = payments.find(p => p.booking_id === booking.id);
+                                                                if (payment) return <span className={payment.status === 'paid' ? "text-emerald-600" : "text-amber-600"}>{payment.status === 'paid' ? 'Paid' : 'Pending'}</span>;
+                                                                return <span className="text-gray-400">Not Initiated</span>;
+                                                            })()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-3">
+                                                {(booking.status === 'assigned' || booking.status === 'completed') && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleOpenFeed(booking)}
+                                                        className="text-gray-600 hover:text-zinc-900 hover:bg-zinc-100"
+                                                    >
+                                                        View Updates
+                                                    </Button>
+                                                )}
+
+                                                {(() => {
+                                                    const payment = payments.find(p => p.booking_id === booking.id);
+                                                    if (payment) {
+                                                        if (payment.status === 'paid') {
                                                             return (
-                                                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
-                                                                    ${payment.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                                                        payment.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                                                            'bg-yellow-100 text-yellow-800'}`}>
-                                                                    Payment: {payment.status}
-                                                                </span>
+                                                                <div className="flex items-center text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-medium">
+                                                                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                                                                    Payment Complete
+                                                                </div>
                                                             );
-                                                        } else if (booking.status !== 'cancelled') {
+                                                        } else {
                                                             return (
-                                                                <Button
-                                                                    size="sm"
-                                                                    onClick={() => handlePayNow(booking)}
-                                                                    className="bg-accent hover:bg-accent/90"
-                                                                >
-                                                                    Pay Now
-                                                                </Button>
+                                                                <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg text-sm font-medium">
+                                                                    <AlertCircle className="w-4 h-4 mr-1.5" />
+                                                                    Payment {payment.status}
+                                                                </div>
                                                             );
                                                         }
-                                                        return null;
-                                                    })()}
-                                                </div>
+                                                    } else if (booking.status !== 'cancelled') {
+                                                        return (
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handlePayNow(booking)}
+                                                                className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md hover:shadow-lg transition-all"
+                                                            >
+                                                                Pay Now <ChevronRight className="w-4 h-4 ml-1" />
+                                                            </Button>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </div>
                                         </div>
-                                    </Card>
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -362,6 +444,12 @@ const UserProfilePage = () => {
                     onPaymentSuccess={() => {
                         loadPayments();
                     }}
+                />
+                {/* Care Feed Modal */}
+                <CareFeedModal
+                    isOpen={isFeedModalOpen}
+                    onClose={() => setIsFeedModalOpen(false)}
+                    booking={selectedBookingForFeed}
                 />
             </div>
         </div>

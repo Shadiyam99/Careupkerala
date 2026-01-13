@@ -5,6 +5,7 @@ import { hospitalsApi } from '../../api/hospitals';
 import { servicesApi } from '../../api/services';
 import { bookingsApi } from '../../api/bookings';
 import { paymentsApi } from '../../api/payments';
+import { careFeedApi } from '../../api/careFeed';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -25,7 +26,8 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Wallet
+    Wallet,
+    MessageSquare
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -81,6 +83,9 @@ const AdminDashboard = () => {
     // Payment State
     const [payments, setPayments] = useState([]);
 
+    // Care Feed State
+    const [careFeeds, setCareFeeds] = useState([]);
+
 
     useEffect(() => {
         setPage(1); // Reset page on tab change
@@ -122,6 +127,10 @@ const AdminDashboard = () => {
             } else if (activeTab === 'payments') {
                 const data = await paymentsApi.getAll();
                 setPayments(data || []);
+                setTotalPages(1);
+            } else if (activeTab === 'care-feed') {
+                const data = await careFeedApi.getAll();
+                setCareFeeds(data || []);
                 setTotalPages(1);
             }
         } catch (err) {
@@ -361,6 +370,7 @@ const AdminDashboard = () => {
         { id: 'services', label: 'Services', icon: Stethoscope },
         { id: 'bookings', label: 'Bookings', icon: Calendar },
         { id: 'payments', label: 'Payments', icon: Wallet },
+        { id: 'care-feed', label: 'Care Feed', icon: MessageSquare },
         { id: 'logs', label: 'Activity Logs', icon: Activity },
     ];
 
@@ -552,7 +562,7 @@ const AdminDashboard = () => {
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{companion.email}</td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{companion.phone}</td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                        {new Date(companion.created_at).toLocaleDateString()}
+                                                                        {new Date(companion.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                                                         <button
@@ -662,7 +672,7 @@ const AdminDashboard = () => {
                                                             {logs.map((log) => (
                                                                 <tr key={log.id}>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                        {new Date(log.created_at).toLocaleString()}
+                                                                        {new Date(log.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -792,7 +802,7 @@ const AdminDashboard = () => {
                                                             {payments.map((payment) => (
                                                                 <tr key={payment.id}>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                        {new Date(payment.created_at).toLocaleDateString()}
+                                                                        {new Date(payment.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap font-mono text-gray-500 text-xs">
                                                                         {payment.booking_id}
@@ -841,6 +851,55 @@ const AdminDashboard = () => {
                                     </Card>
                                 )}
 
+                                {/* Care Feed Tab */}
+                                {activeTab === 'care-feed' && (
+                                    <Card>
+                                        <CardHeader>
+                                            <h3 className="text-lg font-bold text-gray-900">Care Feed Updates</h3>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {careFeeds.length === 0 ? (
+                                                <p className="text-gray-500 py-4 text-center">No care feed updates found.</p>
+                                            ) : (
+                                                <div className="overflow-x-auto">
+                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Companion</th>
+                                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                            {careFeeds.map((feed) => (
+                                                                <tr key={feed.id}>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                        {new Date(feed.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                                        {feed.nri_name || feed.booking_id}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
+                                                                        {feed.message}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                        {feed.companion_name || feed.companion_id}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                        {/* Add actions here if needed */}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
                                 {/* Bookings Tab */}
                                 {activeTab === 'bookings' && (
                                     <Card>
@@ -867,7 +926,7 @@ const AdminDashboard = () => {
                                                             {bookings.map((booking) => (
                                                                 <tr key={booking.id}>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                        {new Date(booking.scheduled_date).toLocaleDateString()}
+                                                                        {new Date(booking.scheduled_date).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                                                     </td>
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                                         {booking.nri_name || 'N/A'}

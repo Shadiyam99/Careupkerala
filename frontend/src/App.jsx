@@ -9,6 +9,8 @@ import CompanionDashboard from './pages/dashboard/CompanionDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import FindCompanionPage from './pages/FindCompanionPage';
 
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
 function App() {
   return (
     <AuthProvider>
@@ -19,9 +21,30 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/find-companion" element={<FindCompanionPage />} />
-            <Route path="/dashboard/profile" element={<UserProfilePage />} />
-            <Route path="/dashboard/companion" element={<CompanionDashboard />} />
-            <Route path="/dashboard/admin" element={<AdminDashboard />} />
+            <Route
+              path="/dashboard/profile"
+              element={
+                <ProtectedRoute allowedRoles={['nri', 'admin']}>
+                  <UserProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/companion"
+              element={
+                <ProtectedRoute allowedRoles={['companion', 'admin']}>
+                  <CompanionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Router>
       </ToastProvider>

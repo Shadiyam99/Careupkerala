@@ -62,20 +62,23 @@ def get_assigned_care_feeds(db: Session, current_user: dict) -> list[CareFeedRes
 
 
 def get_booking_care_feed(db: Session, booking_id: str, current_user: dict) -> list[CareFeedResponse]:
-    """Get care feed for a specific booking. NRI only."""
-    if current_user["role"] != "nri":
-        raise ValueError("Only NRI users can view booking care feeds")
+    """Get care feed for a specific booking. NRI or Companion."""
+    if current_user["role"] not in ["nri", "companion"]:
+        raise ValueError("Role unauthorized to view booking care feeds")
     
-    nri_uuid = UUID(current_user["user_id"])
+    user_uuid = UUID(current_user["user_id"])
     booking_uuid = UUID(booking_id)
     
-    # Validate booking exists and belongs to NRI
+    # Validate booking exists
     booking = db.query(Booking).filter(Booking.id == booking_uuid).first()
     if not booking:
         raise ValueError("Booking not found")
     
-    if booking.nri_id != nri_uuid:
+    # Check access based on role
+    if current_user["role"] == "nri" and booking.nri_id != user_uuid:
         raise ValueError("Booking does not belong to you")
+    elif current_user["role"] == "companion" and booking.companion_id != user_uuid:
+        raise ValueError("You are not assigned to this booking")
     
     # Get feeds for this booking
     feeds = db.query(CareFeed).filter(CareFeed.booking_id == booking_uuid).all()
@@ -86,7 +89,9 @@ def get_booking_care_feed(db: Session, booking_id: str, current_user: dict) -> l
             booking_id=f.booking_id,
             companion_id=f.companion_id,
             message=f.message,
-            created_at=f.created_at
+            created_at=f.created_at,
+            nri_name=f.booking.nri.full_name if f.booking and f.booking.nri else None,
+            companion_name=f.companion.full_name if f.companion else None
         )
         for f in feeds
     ]
@@ -105,7 +110,9 @@ def get_all_care_feeds(db: Session, current_user: dict) -> list[CareFeedResponse
             booking_id=f.booking_id,
             companion_id=f.companion_id,
             message=f.message,
-            created_at=f.created_at
+            created_at=f.created_at,
+            nri_name=f.booking.nri.full_name if f.booking and f.booking.nri else "Unknown",
+            companion_name=f.companion.full_name if f.companion else "Unknown"
         )
         for f in feeds
     ]

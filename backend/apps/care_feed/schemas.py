@@ -14,3 +14,5 @@ class CareFeedResponse(BaseModel):
     companion_id: UUID
     message: str
     created_at: datetime
+    nri_name: str | None = None
+    companion_name: str | None = None

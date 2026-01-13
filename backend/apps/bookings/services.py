@@ -64,12 +64,16 @@ def create_booking(db: Session, data: BookingCreate, current_user: dict) -> Book
 
 
 def get_my_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
-    """Get own bookings. NRI only."""
-    if current_user["role"] != "nri":
-        raise ValueError("Only NRI users can view their bookings")
+    """Get own bookings. NRI (created) or Companion (assigned)."""
+    if current_user["role"] not in ["nri", "companion"]:
+        raise ValueError("User role not authorized to view bookings")
     
-    nri_uuid = UUID(current_user["user_id"])
-    bookings = db.query(Booking).filter(Booking.nri_id == nri_uuid).all()
+    user_uuid = UUID(current_user["user_id"])
+    
+    if current_user["role"] == "nri":
+        bookings = db.query(Booking).filter(Booking.nri_id == user_uuid).all()
+    else: # companion
+        bookings = db.query(Booking).filter(Booking.companion_id == user_uuid).all()
     
     return [
         BookingResponse(
@@ -123,32 +127,41 @@ def get_all_bookings(db: Session, current_user: dict) -> list[BookingResponse]:
 
 
 def update_booking_status(db: Session, booking_id: str, data: BookingStatusUpdate, current_user: dict) -> BookingResponse:
-    """Update booking status. Admin only."""
-    if current_user["role"] != "admin":
-        raise ValueError("Only admins can update booking status")
-    
-    allowed_statuses = ["pending", "assigned", "completed", "cancelled"]
-    if data.status not in allowed_statuses:
-        raise ValueError(f"Invalid status. Allowed: {', '.join(allowed_statuses)}")
+    """Update booking status. Admin or Assigned Companion."""
+    if current_user["role"] not in ["admin", "companion"]:
+        raise ValueError("Unauthorized to update booking status")
     
     booking_uuid = UUID(booking_id)
     booking = db.query(Booking).filter(Booking.id == booking_uuid).first()
     
     if not booking:
         raise ValueError("Booking not found")
+
+    # Companion validation
+    if current_user["role"] == "companion":
+        if booking.companion_id != UUID(current_user["user_id"]):
+            raise ValueError("You are not assigned to this booking")
+        if data.status not in ["completed"]:
+             raise ValueError("Companions can only mark bookings as completed")
+
+    allowed_statuses = ["pending", "assigned", "completed", "cancelled"]
+    if data.status not in allowed_statuses:
+        raise ValueError(f"Invalid status. Allowed: {', '.join(allowed_statuses)}")
     
     booking.status = data.status
     db.commit()
     db.refresh(booking)
     
-    log_admin_action(
-        db=db,
-        current_user=current_user,
-        action_type="update_status",
-        entity_type="booking",
-        entity_id=booking.id,
-        description=f"Updated booking status to: {booking.status}"
-    )
+    # Log action (if admin) or just internal log
+    if current_user["role"] == "admin":
+        log_admin_action(
+            db=db,
+            current_user=current_user,
+            action_type="update_status",
+            entity_type="booking",
+            entity_id=booking.id,
+            description=f"Updated booking status to: {booking.status}"
+        )
     
     return BookingResponse(
         id=booking.id,

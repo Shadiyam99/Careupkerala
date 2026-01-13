@@ -22,11 +22,21 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await login(email, password);
-            // Show success message and redirect after 2 seconds
+            // Show success message and redirect after 1 second
             setSuccess('Login successful! Redirecting...');
+
+            // Get user role from local storage or decode token (simplest is to use the response from login if possible, but context updates asynchronously)
+            // Ideally login function returns user data. Let's assume login returns response.data
+            // Actually, looking at context, login returns response.data.
+
+            const userData = JSON.parse(localStorage.getItem('user'));
+            const role = userData?.role;
+
             setTimeout(() => {
-                navigate('/');
-            }, 2000);
+                if (role === 'admin') navigate('/dashboard/admin');
+                else if (role === 'companion') navigate('/dashboard/companion');
+                else navigate('/dashboard/profile');
+            }, 1000);
         } catch (err) {
             console.error("Login error:", err);
             const detail = err.response?.data?.detail;
