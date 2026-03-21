@@ -53,7 +53,7 @@ const CompanionDashboard = () => {
                 bookingsApi.getMyBookings()
             ]);
             setProfile(profileData);
-            setBookings(bookingsData);
+            setBookings(bookingsData.items || []);
         } catch (err) {
             toastError('Failed to load dashboard data.');
             console.error(err);

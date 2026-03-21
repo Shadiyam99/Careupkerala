@@ -49,6 +49,7 @@ def create_feedback(db: Session, data: FeedbackCreate, current_user: dict):
     
     feedback = Feedback(
         booking_id=data.booking_id,
+        nri_user_id=user_id,
         rating=data.rating,
         comment=data.comment
     )

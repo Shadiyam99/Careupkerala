@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 from apps.companions.models import Companion
-from apps.companions.schemas import CompanionResponse, CompanionAvailabilityUpdate, CompanionUpdate
+from apps.companions.schemas import CompanionResponse, CompanionAvailabilityUpdate, CompanionUpdate,CompanionAvailabilityResponse
 from apps.admin_logs.services import log_admin_action
 
 

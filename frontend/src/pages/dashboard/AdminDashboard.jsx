@@ -1084,7 +1084,7 @@ const AdminDashboard = () => {
                                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                                         {feed.companion_name || feed.companion_id}
                                                                     </td>
-                                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                                                         <Button
                                                                             onClick={() => handleDeleteCareFeed(feed.id)}
                                                                             variant="ghost"
